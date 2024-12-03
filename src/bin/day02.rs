@@ -1,10 +1,65 @@
-use std::{cmp::Ordering, fmt::Display};
+use std::cmp::Ordering;
 
 fn main() {
     let input = std::io::read_to_string(std::io::stdin())
         .expect("puzzle input should be provided on standard input");
-    println!("{}", part1(&input));
-    println!("{}", part2(&input));
+    println!("part1: {}", part1(&input));
+    println!("part2: {}", part2(&input));
+}
+
+fn part1(input: &str) -> impl std::fmt::Display {
+    input
+        .lines()
+        .filter(|line| {
+            let samples: Vec<_> = line
+                .split_whitespace()
+                .flat_map(|v| v.parse::<isize>().ok())
+                .collect();
+
+            if samples.is_empty() || !monotonic(samples.iter()) {
+                return false;
+            }
+
+            samples
+                .windows(2)
+                .map(|window| window[0].abs_diff(window[1]))
+                .all(|delta| delta >= 1 && delta <= 3 && delta != 0)
+        })
+        .count()
+}
+
+fn part2(input: &str) -> impl std::fmt::Display {
+    input
+        .lines()
+        .filter(|line| {
+            let master_samples: Vec<_> = line
+                .split_whitespace()
+                .flat_map(|v| v.parse::<isize>().ok())
+                .collect();
+
+            if master_samples.is_empty() {
+                return false;
+            }
+
+            (0..master_samples.len())
+                .map(|index| {
+                    let mut samples = master_samples.clone();
+                    if index < samples.len() {
+                        samples.remove(index);
+                    }
+
+                    if samples.is_empty() || !monotonic(samples.iter()) {
+                        return false;
+                    }
+
+                    samples
+                        .windows(2)
+                        .map(|window| window[0].abs_diff(window[1]))
+                        .all(|delta| delta >= 1 && delta <= 3 && delta != 0)
+                })
+                .any(|v| v)
+        })
+        .count()
 }
 
 /// Determines whether an iterator produces monotonically increasing,
@@ -43,66 +98,10 @@ where
     true
 }
 
-fn part1(input: &str) -> impl Display {
-    input
-        .lines()
-        .filter(|line| {
-            let samples: Vec<_> = line
-                .split_whitespace()
-                .flat_map(|v| v.parse::<isize>().ok())
-                .collect();
-
-            if samples.is_empty() || !monotonic(samples.iter()) {
-                return false;
-            }
-
-            samples
-                .windows(2)
-                .map(|window| window[0].abs_diff(window[1]))
-                .all(|delta| delta >= 1 && delta <= 3 && delta != 0)
-        })
-        .count()
-}
-
-fn part2(input: &str) -> impl Display {
-    input
-        .lines()
-        .filter(|line| {
-            let master_samples: Vec<_> = line
-                .split_whitespace()
-                .flat_map(|v| v.parse::<isize>().ok())
-                .collect();
-
-            if master_samples.is_empty() {
-                return false;
-            }
-
-            (0..master_samples.len())
-                .map(|index| {
-                    let mut samples = master_samples.clone();
-                    if index < samples.len() {
-                        samples.remove(index);
-                    }
-
-                    if samples.is_empty() || !monotonic(samples.iter()) {
-                        return false;
-                    }
-
-                    samples
-                        .windows(2)
-                        .map(|window| window[0].abs_diff(window[1]))
-                        .all(|delta| delta >= 1 && delta <= 3 && delta != 0)
-                })
-                .any(|v| v)
-        })
-        .count()
-}
-
 #[cfg(test)]
-mod example {
-    use crate::*;
+mod day02 {
 
-    const INPUT: &str = r#"
+    const EXAMPLE: &str = r#"
             7 6 4 2 1
             1 2 7 8 9
             9 7 6 2 1
@@ -112,12 +111,12 @@ mod example {
         "#;
 
     #[test]
-    fn day02_part1() {
-        assert_eq!(part1(INPUT).to_string(), "2");
+    fn part1() {
+        assert_eq!(super::part1(EXAMPLE).to_string(), "2");
     }
 
     #[test]
-    fn day02_part2() {
-        assert_eq!(part2(INPUT).to_string(), "4");
+    fn part2() {
+        assert_eq!(super::part2(EXAMPLE).to_string(), "4");
     }
 }

@@ -1,13 +1,13 @@
-use std::{collections::HashMap, fmt::Display};
+use std::collections::HashMap;
 
 fn main() {
     let input = std::io::read_to_string(std::io::stdin())
         .expect("puzzle input should be provided on standard input");
-    println!("{}", part1(&input));
-    println!("{}", part2(&input));
+    println!("part1: {}", part1(&input));
+    println!("part2: {}", part2(&input));
 }
 
-fn part1(input: &str) -> impl Display {
+fn part1(input: &str) -> impl std::fmt::Display {
     let mut left = vec![];
     let mut right = vec![];
 
@@ -33,9 +33,10 @@ fn part1(input: &str) -> impl Display {
         .sum::<usize>()
 }
 
-fn part2(input: &str) -> impl Display {
+fn part2(input: &str) -> impl std::fmt::Display {
     let mut left = vec![];
     let mut right: HashMap<usize, usize> = Default::default();
+
     for line in input.lines() {
         let mut elements = line.split_whitespace();
         match (elements.next(), elements.next()) {
@@ -55,10 +56,9 @@ fn part2(input: &str) -> impl Display {
 }
 
 #[cfg(test)]
-mod example {
-    use crate::*;
+mod day01 {
 
-    const INPUT: &str = r#"
+    const EXAMPLE: &str = r#"
             3   4
             4   3
             2   5
@@ -68,12 +68,12 @@ mod example {
         "#;
 
     #[test]
-    fn day01_part1() {
-        assert_eq!(part1(INPUT).to_string(), "11");
+    fn part1() {
+        assert_eq!(super::part1(EXAMPLE).to_string(), "11");
     }
 
     #[test]
-    fn day01_part2() {
-        assert_eq!(part2(INPUT).to_string(), "31");
+    fn part2() {
+        assert_eq!(super::part2(EXAMPLE).to_string(), "31");
     }
 }
