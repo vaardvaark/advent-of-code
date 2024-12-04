@@ -1,0 +1,8 @@
+[package]
+name = "aoc2024"
+version = "0.0.0"
+edition = "2021"
+
+[dependencies]
+aoc = { version = "0.1.0", path = "../aoc" }
+logos = "0.14.3"

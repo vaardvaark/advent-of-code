@@ -1,11 +1,6 @@
 use std::collections::HashMap;
 
-fn main() {
-    let input = std::io::read_to_string(std::io::stdin())
-        .expect("puzzle input should be provided on standard input");
-    println!("part1: {}", part1(&input));
-    println!("part2: {}", part2(&input));
-}
+aoc2024::aoc!();
 
 fn part1(input: &str) -> impl std::fmt::Display {
     let mut left = vec![];
