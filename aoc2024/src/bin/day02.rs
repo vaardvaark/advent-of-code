@@ -1,6 +1,6 @@
-use std::cmp::Ordering;
+aoc::main!();
 
-aoc2024::aoc!();
+use std::cmp::Ordering;
 
 fn part1(input: &str) -> impl std::fmt::Display {
     input

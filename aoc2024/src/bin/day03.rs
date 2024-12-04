@@ -1,6 +1,6 @@
-use logos::{Lexer, Logos};
+aoc::main!();
 
-aoc2024::aoc!();
+use logos::{Lexer, Logos};
 
 fn part1(input: &str) -> impl std::fmt::Display {
     let mut total = 0;

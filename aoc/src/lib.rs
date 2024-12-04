@@ -1,10 +1,9 @@
-use std::path::PathBuf;
-
 #[macro_export]
-macro_rules! aoc {
-    ($year:expr) => {
+macro_rules! main {
+    () => {
         use aoc::*;
 
+        const CAL: &str = env!("CARGO_PKG_NAME");
         const DAY: &str = env!("CARGO_BIN_NAME");
 
         fn main() {
@@ -12,8 +11,7 @@ macro_rules! aoc {
                 std::fs::read_to_string(&path)
                     .expect(&format!("failed to read input from {path:?}"))
             } else {
-                let year = format!("aoc{}", $year);
-                puzzle_input(&year, DAY)
+                puzzle_input(CAL, DAY)
             };
             println!("{DAY}");
             println!("part1: {}", part1(&input));
@@ -23,9 +21,18 @@ macro_rules! aoc {
 }
 
 pub fn puzzle_input(year: &str, day: &str) -> String {
-    let path = PathBuf::from(format!("input/{year}-{day}.txt"));
-    let input = std::fs::read_to_string(&path)
-        .expect(&format!("puzzle input should be available at {path:?}"));
+    let mut path = std::env::current_dir().unwrap();
+    path.push(format!("input"));
+    path.push(format!("{year}-{day}.txt"));
+
+    let input = match std::fs::read_to_string(&path) {
+        Ok(input) => input,
+        Err(error) => {
+            eprintln!("failed to read puzzle input from {path:?}: {error}");
+            eprintln!("place puzzle input in {path:?}, or provide filename on command line.");
+            std::process::exit(1);
+        }
+    };
 
     if input.is_empty() {
         eprintln!("WARNING: puzzle input empty");

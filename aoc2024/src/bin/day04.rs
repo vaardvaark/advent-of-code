@@ -1,4 +1,4 @@
-aoc2024::aoc!();
+aoc::main!();
 
 fn part1(input: &str) -> impl std::fmt::Display {
     let grid = Grid::new(input);

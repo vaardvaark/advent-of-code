@@ -1,6 +1,6 @@
-use std::collections::HashMap;
+aoc::main!();
 
-aoc2024::aoc!();
+use std::collections::HashMap;
 
 fn part1(input: &str) -> impl std::fmt::Display {
     let mut left = vec![];
