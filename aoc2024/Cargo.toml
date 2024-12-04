@@ -1,8 +1,13 @@
 [package]
 name = "aoc2024"
-version = "0.0.0"
-edition = "2021"
+version = "0.4.0"
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
 
 [dependencies]
-aoc = { version = "0.1.0", path = "../aoc" }
+aoc = { path = "../aoc" }
 logos = "0.14.3"
