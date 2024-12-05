@@ -4,8 +4,6 @@ use std::{
     rc::Rc,
 };
 
-aoc::main!();
-
 struct Updates {
     updates: Vec<Vec<usize>>,
     rules: Rc<HashMap<usize, HashSet<usize>>>,
@@ -101,44 +99,4 @@ fn part2(input: &str) -> impl std::fmt::Display {
     updates.invalid().make_valid().sum_middles()
 }
 
-#[cfg(test)]
-mod day05 {
-    const EXAMPLE: &str = r#"47|53
-        97|13
-        97|61
-        97|47
-        75|29
-        61|13
-        75|53
-        29|13
-        97|29
-        53|29
-        61|53
-        97|53
-        61|29
-        47|13
-        75|47
-        97|75
-        47|61
-        75|61
-        47|29
-        75|13
-        53|13
-
-        75,47,61,53,29
-        97,61,53,29,13
-        75,29,13
-        75,97,47,61,53
-        61,13,29
-        97,13,75,29,47"#;
-
-    #[test]
-    fn part1() {
-        assert_eq!(super::part1(EXAMPLE).to_string(), "143");
-    }
-
-    #[test]
-    fn part2() {
-        assert_eq!(super::part2(EXAMPLE).to_string(), "123");
-    }
-}
+aoc::aoc!(day05, "143", "123");

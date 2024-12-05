@@ -1,5 +1,3 @@
-aoc::main!();
-
 fn part1(input: &str) -> impl std::fmt::Display {
     let grid = gridify_ascii(input.lines());
     let mut count = 0;
@@ -69,40 +67,4 @@ fn map(grid: &Grid<u8>, positions: &[(usize, usize)]) -> Option<String> {
     }
 }
 
-#[cfg(test)]
-mod day04 {
-
-    #[test]
-    fn part1() {
-        const EXAMPLE: &str = r#"
-            MMMSXXMASM
-            MSAMXMSMSA
-            AMXSXMAAMM
-            MSAMASMSMX
-            XMASAMXAMM
-            XXAMMXXAMA
-            SMSMSASXSS
-            SAXAMASAAA
-            MAMMMXMMMM
-            MXMXAXMASX
-        "#;
-        assert_eq!(super::part1(EXAMPLE).to_string(), "18");
-    }
-
-    #[test]
-    fn part2() {
-        const EXAMPLE: &str = r#"
-            .M.S......
-            ..A..MSMS.
-            .M.S.MAA..
-            ..A.ASMSM.
-            .M.S.M....
-            ..........
-            S.S.S.S.S.
-            .A.A.A.A..
-            M.M.M.M.M.
-            ..........
-        "#;
-        assert_eq!(super::part2(EXAMPLE).to_string(), "9");
-    }
-}
+aoc::aoc!(day04, "18", "9");

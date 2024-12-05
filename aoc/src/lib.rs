@@ -1,4 +1,6 @@
 mod grid;
+use std::path::PathBuf;
+
 pub use grid::{gridify_ascii, Cursor, Grid, Pos};
 
 #[macro_export]
@@ -21,6 +23,89 @@ macro_rules! main {
             println!("part2: {}", part2(&input));
         }
     };
+}
+
+#[macro_export]
+macro_rules! tests {
+    ($day:ident, $value01:literal) => {
+        #[cfg(test)]
+        mod $day {
+            #[test]
+            fn part1() {
+                let base = env!("CARGO_MANIFEST_DIR");
+                let input = aoc::test_input(base, super::DAY, aoc::Part::Part1);
+                assert_eq!(super::part1(&input).to_string(), $value01);
+            }
+        }
+    };
+    ($day:ident, $value01:literal, $value02:literal) => {
+        #[cfg(test)]
+        mod $day {
+            #[test]
+            fn part1() {
+                let base = env!("CARGO_MANIFEST_DIR");
+                let input = aoc::test_input(base, super::DAY, aoc::Part::Part1);
+                assert_eq!(super::part1(&input).to_string(), $value01);
+            }
+            #[test]
+            fn part2() {
+                let base = env!("CARGO_MANIFEST_DIR");
+                let input = aoc::test_input(base, super::DAY, aoc::Part::Part2);
+                assert_eq!(super::part2(&input).to_string(), $value02);
+            }
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! aoc {
+    ($day:ident) => {
+        aoc::main!();
+    };
+    ($day:ident, $value01:literal) => {
+        aoc::main!();
+        aoc::tests!($day, $value01);
+    };
+    ($day:ident, $value01:literal, $value02:literal) => {
+        aoc::main!();
+        aoc::tests!($day, $value01, $value02);
+    };
+}
+
+#[derive(Debug)]
+pub enum Part {
+    Part1,
+    Part2,
+}
+
+impl std::fmt::Display for Part {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Part1 => write!(f, "part1"),
+            Self::Part2 => write!(f, "part2"),
+        }
+    }
+}
+
+pub fn test_input(base: &str, day: &str, part: Part) -> String {
+    let mut base = PathBuf::from(base);
+    base.push("examples");
+
+    let mut part_input = base.clone();
+    part_input.push(format!("{}-{part}.txt", day.replace("day", "example")));
+
+    if let Ok(input) = std::fs::read_to_string(&part_input) {
+        return input;
+    }
+
+    // try more general example
+    part_input.pop();
+    part_input.push(format!("{}.txt", day.replace("day", "example")));
+    if let Ok(input) = std::fs::read_to_string(&part_input) {
+        return input;
+    }
+
+    panic!("could not load example input");
 }
 
 pub fn puzzle_input(year: &str, day: &str) -> String {

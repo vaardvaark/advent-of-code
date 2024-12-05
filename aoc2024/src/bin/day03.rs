@@ -1,5 +1,3 @@
-aoc::main!();
-
 use logos::{Lexer, Logos};
 
 fn part1(input: &str) -> impl std::fmt::Display {
@@ -98,21 +96,4 @@ fn take_mul(tokens: &mut Lexer<Token>) -> Option<(usize, usize)> {
     Some((lval, rval))
 }
 
-#[cfg(test)]
-mod day03 {
-
-    #[test]
-    fn part1() {
-        const EXAMPLE: &str =
-            r#"xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))"#;
-
-        assert_eq!(super::part1(EXAMPLE).to_string(), "161");
-    }
-
-    #[test]
-    fn part2() {
-        const EXAMPLE: &str =
-            r#"xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))"#;
-        assert_eq!(super::part2(EXAMPLE).to_string(), "48");
-    }
-}
+aoc::aoc!(day03, "161", "48");

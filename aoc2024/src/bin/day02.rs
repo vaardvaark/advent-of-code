@@ -1,5 +1,3 @@
-aoc::main!();
-
 use std::cmp::Ordering;
 
 fn part1(input: &str) -> impl std::fmt::Display {
@@ -81,25 +79,4 @@ where
     true
 }
 
-#[cfg(test)]
-mod day02 {
-
-    const EXAMPLE: &str = r#"
-            7 6 4 2 1
-            1 2 7 8 9
-            9 7 6 2 1
-            1 3 2 4 5
-            8 6 4 4 1
-            1 3 6 7 9
-        "#;
-
-    #[test]
-    fn part1() {
-        assert_eq!(super::part1(EXAMPLE).to_string(), "2");
-    }
-
-    #[test]
-    fn part2() {
-        assert_eq!(super::part2(EXAMPLE).to_string(), "4");
-    }
-}
+aoc::aoc!(day02, "2", "4");
