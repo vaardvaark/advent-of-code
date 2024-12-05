@@ -1,3 +1,6 @@
+mod grid;
+pub use grid::{gridify_ascii, Cursor, Grid, Pos};
+
 #[macro_export]
 macro_rules! main {
     () => {
@@ -48,8 +51,6 @@ where
 {
     s.as_ref().parse().unwrap()
 }
-
-pub type Pos = (usize, usize);
 
 /// Iterates from `(0, 0)`, `(1, 0)`, (2, 0)`, ... to `(cols, rows)`.
 pub fn iter_pos(rows: usize, cols: usize) -> impl Iterator<Item = Pos> {

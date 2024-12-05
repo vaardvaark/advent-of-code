@@ -1,10 +1,10 @@
 aoc::main!();
 
 fn part1(input: &str) -> impl std::fmt::Display {
-    let grid = Grid::new(input);
+    let grid = gridify_ascii(input.lines());
     let mut count = 0;
     for (col, row) in grid.iter_pos() {
-        let mut patterns = vec![
+        let mut search = vec![
             [(col, row), (col + 1, row), (col + 2, row), (col + 3, row)],
             [(col, row), (col, row + 1), (col, row + 2), (col, row + 3)],
             [
@@ -15,15 +15,16 @@ fn part1(input: &str) -> impl std::fmt::Display {
             ],
         ];
         if row >= 3 {
-            patterns.push([
+            search.push([
                 (col, row),
                 (col + 1, row - 1),
                 (col + 2, row - 2),
                 (col + 3, row - 3),
             ]);
         }
-        for pattern in patterns {
-            let Some(found) = grid.map(&pattern) else {
+
+        for search in search {
+            let Some(found) = map(&grid, &search) else {
                 continue;
             };
             if ["XMAS", "SAMX"].contains(&found.as_str()) {
@@ -31,12 +32,11 @@ fn part1(input: &str) -> impl std::fmt::Display {
             }
         }
     }
-
     count
 }
 
 fn part2(input: &str) -> impl std::fmt::Display {
-    let grid = Grid::new(input);
+    let grid = gridify_ascii(input.lines());
     let mut count = 0;
     for (col, row) in grid.iter_pos() {
         let pattern = [
@@ -46,7 +46,7 @@ fn part2(input: &str) -> impl std::fmt::Display {
             (col + 2, row + 2), // bottom-right
             (col + 1, row + 1), // middle
         ];
-        let Some(found) = grid.map(&pattern) else {
+        let Some(found) = map(&grid, &pattern) else {
             continue;
         };
         if ["MMSSA", "MSMSA", "SSMMA", "SMSMA"].contains(&found.as_str()) {
@@ -56,52 +56,16 @@ fn part2(input: &str) -> impl std::fmt::Display {
 
     count
 }
+fn map(grid: &Grid<u8>, positions: &[(usize, usize)]) -> Option<String> {
+    let bytes: Vec<_> = positions
+        .into_iter()
+        .filter_map(|&(col, row)| grid.get(col, row).copied())
+        .collect();
 
-#[derive(Debug)]
-struct Grid {
-    rows: usize,
-    cols: usize,
-    text: Vec<u8>,
-}
-
-impl Grid {
-    fn new(input: &str) -> Self {
-        let mut cols = 0;
-        let mut text = vec![];
-        let rows = input
-            .lines()
-            .filter(|line| !line.trim().is_empty())
-            .map(|line| {
-                let line = line.trim();
-                cols = line.len();
-                text.extend_from_slice(line.as_bytes());
-            })
-            .count();
-        Self { rows, cols, text }
-    }
-
-    fn get(&self, col: usize, row: usize) -> Option<u8> {
-        if row < self.rows && col < self.cols {
-            return Some(self.text[(row * self.cols) + col]);
-        }
+    if bytes.len() == positions.len() {
+        Some(String::from_utf8(bytes).unwrap())
+    } else {
         None
-    }
-
-    fn map(&self, positions: &[(usize, usize)]) -> Option<String> {
-        let bytes: Vec<_> = positions
-            .into_iter()
-            .flat_map(|&(col, row)| self.get(col, row))
-            .collect();
-
-        if bytes.len() == positions.len() {
-            Some(String::from_utf8(bytes).unwrap())
-        } else {
-            None
-        }
-    }
-
-    fn iter_pos(&self) -> impl Iterator<Item = (usize, usize)> {
-        aoc::iter_pos(self.rows, self.cols)
     }
 }
 
