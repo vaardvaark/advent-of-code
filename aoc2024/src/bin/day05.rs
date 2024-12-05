@@ -15,13 +15,7 @@ impl Updates {
     fn extract(input: &str) -> Self {
         let mut lines = input.lines().map(|line| line.trim());
         let mut rules: HashMap<_, HashSet<_>> = HashMap::new();
-        for (left, right) in (&mut lines)
-            .take_while(|line| !line.is_empty())
-            .map(|line| {
-                let (left, right) = line.split_once('|').unwrap();
-                (parse::<usize>(left), parse::<usize>(right))
-            })
-        {
+        for (left, right) in take_pairs!(&mut lines, '|') {
             rules.entry(left).or_default();
             rules
                 .entry(right)
@@ -30,13 +24,9 @@ impl Updates {
                 })
                 .or_insert([left].into());
         }
-        let updates = (&mut lines)
-            .take_while(|line| !line.is_empty())
-            .map(|line| line.split(',').map(parse).collect())
-            .collect();
         Self {
             rules: Rc::new(rules),
-            updates,
+            updates: take_lists!(&mut lines, ',').collect(),
         }
     }
 

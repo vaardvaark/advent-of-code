@@ -6,15 +6,10 @@ fn part1(input: &str) -> impl std::fmt::Display {
     input
         .lines()
         .filter(|line| {
-            let samples: Vec<_> = line
-                .split_whitespace()
-                .flat_map(|v| v.parse::<isize>().ok())
-                .collect();
-
+            let samples = parse_list!(line, isize);
             if samples.is_empty() || !monotonic(samples.iter()) {
                 return false;
             }
-
             samples
                 .windows(2)
                 .map(|window| window[0].abs_diff(window[1]))
@@ -27,26 +22,19 @@ fn part2(input: &str) -> impl std::fmt::Display {
     input
         .lines()
         .filter(|line| {
-            let master_samples: Vec<_> = line
-                .split_whitespace()
-                .flat_map(|v| v.parse::<isize>().ok())
-                .collect();
-
+            let master_samples = parse_list!(line, isize);
             if master_samples.is_empty() {
                 return false;
             }
-
             (0..master_samples.len())
                 .map(|index| {
                     let mut samples = master_samples.clone();
                     if index < samples.len() {
                         samples.remove(index);
                     }
-
                     if samples.is_empty() || !monotonic(samples.iter()) {
                         return false;
                     }
-
                     samples
                         .windows(2)
                         .map(|window| window[0].abs_diff(window[1]))
