@@ -1,12 +1,11 @@
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use std::collections::HashSet;
 
-fn explore(grid: Grid<u8>, pos: Pos) -> Option<usize> {
+fn explore(grid: Grid<u8>, pos: Pos) -> Option<HashSet<Pos>> {
     let mut visited = HashSet::new();
     let mut visited2 = HashSet::new();
     let mut cursor = grid.cursor(pos);
     let mut direction = Direction::Up;
-
     loop {
         if !visited2.insert((cursor.pos(), direction)) {
             return None;
@@ -25,25 +24,19 @@ fn explore(grid: Grid<u8>, pos: Pos) -> Option<usize> {
             None => break,
         }
     }
-
-    Some(visited.len())
+    Some(visited)
 }
 
 fn part1(input: &str) -> impl std::fmt::Display {
     let grid = gridify_ascii(input.lines());
     let start = grid.position(|&v| v == b'^').unwrap();
-    explore(grid, start).unwrap()
+    explore(grid, start).unwrap().len()
 }
 
 fn part2(input: &str) -> impl std::fmt::Display {
     let grid = gridify_ascii(input.lines());
     let start = grid.position(|&v| v == b'^').unwrap();
-
-    let positions: Vec<_> = grid
-        .iter_pos()
-        .filter(|&pos| grid.get(pos).unwrap() != &b'#')
-        .collect();
-
+    let positions: Vec<_> = explore(grid.clone(), start).unwrap().into_iter().collect();
     let count = positions
         .into_par_iter()
         .map(|pos| {
