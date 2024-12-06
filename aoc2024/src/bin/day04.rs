@@ -57,7 +57,7 @@ fn part2(input: &str) -> impl std::fmt::Display {
 fn map(grid: &Grid<u8>, positions: &[(usize, usize)]) -> Option<String> {
     let bytes: Vec<_> = positions
         .into_iter()
-        .filter_map(|&(col, row)| grid.get(col, row).copied())
+        .filter_map(|&(col, row)| grid.get((col, row)).copied())
         .collect();
 
     if bytes.len() == positions.len() {

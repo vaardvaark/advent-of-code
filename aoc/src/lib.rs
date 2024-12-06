@@ -1,7 +1,8 @@
 mod grid;
 use std::path::PathBuf;
 
-pub use grid::{gridify_ascii, Cursor, Grid, Pos};
+pub use grid::{gridify_ascii, Cursor, Direction, Grid, Pos};
+pub use rayon;
 
 #[macro_export]
 macro_rules! main {
