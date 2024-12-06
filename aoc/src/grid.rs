@@ -18,6 +18,24 @@ impl Direction {
         }
     }
 
+    pub fn prev_clockwise(&self) -> Self {
+        match self {
+            Self::Up => Self::Left,
+            Self::Right => Self::Up,
+            Self::Down => Self::Right,
+            Self::Left => Self::Down,
+        }
+    }
+
+    pub fn reverse(&self) -> Self {
+        match self {
+            Self::Up => Self::Down,
+            Self::Right => Self::Left,
+            Self::Down => Self::Up,
+            Self::Left => Self::Right,
+        }
+    }
+
     pub fn from_ascii(value: u8) -> Option<Self> {
         match value {
             b'^' => Some(Self::Up),
@@ -52,17 +70,17 @@ impl<T> Grid<T> {
     }
 
     #[inline]
-    pub fn get(&self, (col, row): Pos) -> Option<&T> {
-        match col < self.cols() && row < self.rows() {
-            true => Some(&self.data[self.calc_index(col, row)]),
+    pub fn get(&self, pos: Pos) -> Option<&T> {
+        match self.in_bounds(pos) {
+            true => Some(&self.data[self.calc_index(pos)]),
             false => None,
         }
     }
 
     #[inline]
-    pub fn set(&mut self, (col, row): Pos, value: T) -> T {
-        assert!(col < self.cols() && row < self.rows());
-        let index = self.calc_index(col, row);
+    pub fn set(&mut self, pos: Pos, value: T) -> T {
+        assert!(self.in_bounds(pos));
+        let index = self.calc_index(pos);
         std::mem::replace(&mut self.data[index], value)
     }
 
@@ -98,12 +116,14 @@ impl<T> Grid<T> {
         }
     }
 
+    /// Returns a column-first iterator of all the valid coordinates
+    /// in the grid.
     #[inline]
     pub fn iter_pos(&self) -> impl Iterator<Item = (usize, usize)> {
         super::iter_pos(self.rows(), self.cols())
     }
 
-    pub fn cursor(self, (col, row): Pos) -> Cursor<T> {
+    pub fn cursor<'g>(&'g self, (col, row): Pos) -> Cursor<'g, T> {
         Cursor {
             grid: self,
             col,
@@ -112,8 +132,12 @@ impl<T> Grid<T> {
     }
 
     #[inline]
-    fn calc_index(&self, col: usize, row: usize) -> usize {
+    fn calc_index(&self, (col, row): Pos) -> usize {
         (row * self.cols()) + col
+    }
+
+    fn in_bounds(&self, (col, row): Pos) -> bool {
+        col < self.cols() && row < self.rows()
     }
 }
 
@@ -129,45 +153,50 @@ impl<T: Eq> Grid<T> {
         }
         None
     }
+
+    pub fn position_all<P>(&self, predicate: P) -> Vec<Pos>
+    where
+        P: Fn(&T) -> bool,
+    {
+        self.iter_pos()
+            .filter(|&pos| predicate(&self[pos]))
+            .collect()
+    }
 }
 
 impl<T> std::ops::Index<Pos> for Grid<T> {
     type Output = T;
 
     #[inline]
-    fn index(&self, (col, row): Pos) -> &Self::Output {
-        assert!(col < self.cols() && row < self.rows());
-        &self.data[self.calc_index(col, row)]
+    fn index(&self, pos: Pos) -> &Self::Output {
+        assert!(self.in_bounds(pos));
+        &self.data[self.calc_index(pos)]
     }
 }
 
 impl<T> std::ops::IndexMut<Pos> for Grid<T> {
-    fn index_mut(&mut self, (col, row): Pos) -> &mut Self::Output {
-        assert!(col < self.cols() && row < self.rows());
-        let index = self.calc_index(col, row);
+    fn index_mut(&mut self, pos: Pos) -> &mut Self::Output {
+        assert!(self.in_bounds(pos));
+        let index = self.calc_index(pos);
         &mut self.data[index]
     }
 }
 
 /// A two-dimensional cursor associated with a [`Grid`].
-pub struct Cursor<T> {
-    grid: Grid<T>,
+pub struct Cursor<'g, T> {
+    grid: &'g Grid<T>,
     col: usize,
     row: usize,
 }
 
-impl<T> Cursor<T> {
-    /// Creates a new `Cursor` for the specified grid, start at `(0, 0)`.
-    pub fn new(grid: Grid<T>) -> Self {
+impl<'g, T> Cursor<'g, T> {
+    /// Creates a new `Cursor` for the specified grid, starting at `(0, 0)`.
+    pub fn new(grid: &'g Grid<T>) -> Self {
         Self {
             grid,
             col: 0,
             row: 0,
         }
-    }
-
-    pub fn take(self) -> Grid<T> {
-        self.grid
     }
 
     /// Returns the current position of the `Cursor`.
@@ -183,13 +212,13 @@ impl<T> Cursor<T> {
         &self.grid[self.pos()]
     }
 
-    pub fn set(&mut self, value: T) -> T {
-        self.grid.set((self.col, self.row), value)
-    }
-
-    pub fn step(&mut self, dir: Direction) -> bool {
+    /// Moves the cursor in the specified direction.
+    ///
+    /// Returns false if the cursor could not be moved (eg. if moving
+    /// the cursor places it outside the bounds of the grid).
+    pub fn step(&mut self, direction: Direction) -> bool {
         use Direction::*;
-        match dir {
+        match direction {
             Up => self.up(),
             Right => self.right(),
             Down => self.down(),
@@ -197,9 +226,10 @@ impl<T> Cursor<T> {
         }
     }
 
-    pub fn peek(&mut self, dir: Direction) -> Option<&T> {
+    /// Peeks at the cell in the specified direction.
+    pub fn peek(&mut self, direction: Direction) -> Option<&T> {
         use Direction::*;
-        match dir {
+        match direction {
             Up => self.peek_up(),
             Right => self.peek_right(),
             Down => self.peek_down(),

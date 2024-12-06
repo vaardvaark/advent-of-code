@@ -1,7 +1,7 @@
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use std::collections::HashSet;
 
-fn explore(grid: Grid<u8>, pos: Pos) -> Option<HashSet<Pos>> {
+fn explore(grid: &Grid<u8>, pos: Pos) -> Option<HashSet<Pos>> {
     let mut visited = HashSet::new();
     let mut visited2 = HashSet::new();
     let mut cursor = grid.cursor(pos);
@@ -30,13 +30,13 @@ fn explore(grid: Grid<u8>, pos: Pos) -> Option<HashSet<Pos>> {
 fn part1(input: &str) -> impl std::fmt::Display {
     let grid = gridify_ascii(input.lines());
     let start = grid.position(|&v| v == b'^').unwrap();
-    explore(grid, start).unwrap().len()
+    explore(&grid, start).unwrap().len()
 }
 
 fn part2(input: &str) -> impl std::fmt::Display {
     let grid = gridify_ascii(input.lines());
     let start = grid.position(|&v| v == b'^').unwrap();
-    let positions: Vec<_> = explore(grid.clone(), start).unwrap().into_iter().collect();
+    let positions: Vec<_> = explore(&grid, start).unwrap().into_iter().collect();
     let count = positions
         .into_par_iter()
         .map(|pos| {
@@ -44,8 +44,7 @@ fn part2(input: &str) -> impl std::fmt::Display {
             grid.set(pos, b'#');
             grid
         })
-        .map(|grid| explore(grid, start).is_none())
-        .filter(|result| *result)
+        .filter(|grid| explore(grid, start).is_none())
         .count();
 
     count
