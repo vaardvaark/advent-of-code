@@ -1,23 +1,33 @@
 fn part1(input: &str) -> impl std::fmt::Display {
     let grid = gridify_ascii(input.lines());
     let mut count = 0;
-    for (col, row) in grid.iter_pos() {
+    for Vec2 { x, y } in grid.iter_pos() {
         let mut search = vec![
-            [(col, row), (col + 1, row), (col + 2, row), (col + 3, row)],
-            [(col, row), (col, row + 1), (col, row + 2), (col, row + 3)],
             [
-                (col, row),
-                (col + 1, row + 1),
-                (col + 2, row + 2),
-                (col + 3, row + 3),
+                Vec2::new(x, y),
+                Vec2::new(x + 1, y),
+                Vec2::new(x + 2, y),
+                Vec2::new(x + 3, y),
+            ],
+            [
+                Vec2::new(x, y),
+                Vec2::new(x, y + 1),
+                Vec2::new(x, y + 2),
+                Vec2::new(x, y + 3),
+            ],
+            [
+                Vec2::new(x, y),
+                Vec2::new(x + 1, y + 1),
+                Vec2::new(x + 2, y + 2),
+                Vec2::new(x + 3, y + 3),
             ],
         ];
-        if row >= 3 {
+        if y >= 3 {
             search.push([
-                (col, row),
-                (col + 1, row - 1),
-                (col + 2, row - 2),
-                (col + 3, row - 3),
+                Vec2::new(x, y),
+                Vec2::new(x + 1, y - 1),
+                Vec2::new(x + 2, y - 2),
+                Vec2::new(x + 3, y - 3),
             ]);
         }
 
@@ -36,13 +46,13 @@ fn part1(input: &str) -> impl std::fmt::Display {
 fn part2(input: &str) -> impl std::fmt::Display {
     let grid = gridify_ascii(input.lines());
     let mut count = 0;
-    for (col, row) in grid.iter_pos() {
+    for Vec2 { x, y } in grid.iter_pos() {
         let pattern = [
-            (col, row),         // top-left
-            (col + 2, row),     // top-right
-            (col, row + 2),     // bottom-left
-            (col + 2, row + 2), // bottom-right
-            (col + 1, row + 1), // middle
+            Vec2::new(x, y),         // top-left
+            Vec2::new(x + 2, y),     // top-right
+            Vec2::new(x, y + 2),     // bottom-left
+            Vec2::new(x + 2, y + 2), // bottom-right
+            Vec2::new(x + 1, y + 1), // middle
         ];
         let Some(found) = map(&grid, &pattern) else {
             continue;
@@ -54,10 +64,10 @@ fn part2(input: &str) -> impl std::fmt::Display {
 
     count
 }
-fn map(grid: &Grid<u8>, positions: &[(usize, usize)]) -> Option<String> {
+fn map(grid: &Grid<u8>, positions: &[Vec2]) -> Option<String> {
     let bytes: Vec<_> = positions
         .into_iter()
-        .filter_map(|&(col, row)| grid.get((col, row)).copied())
+        .filter_map(|pos| grid.get(pos).copied())
         .collect();
 
     if bytes.len() == positions.len() {

@@ -1,8 +1,58 @@
 mod grid;
+mod vec2;
+
 use std::path::PathBuf;
 
-pub use grid::{gridify_ascii, Cursor, Direction, Grid, Pos};
+pub use grid::{gridify_ascii, Cursor, Direction, Grid};
 pub use rayon;
+pub use vec2::Vec2;
+
+pub trait AllPairs<T> {
+    fn all_pairs<'a>(&'a self) -> impl Iterator<Item = (&'a T, &'a T)>
+    where
+        T: 'a;
+}
+
+impl<T> AllPairs<T> for Vec<T> {
+    #[inline]
+    fn all_pairs<'a>(&'a self) -> impl Iterator<Item = (&'a T, &'a T)>
+    where
+        T: 'a,
+    {
+        let len = self.len();
+        let mut i = 0;
+        let mut j = 0;
+        std::iter::from_fn(move || {
+            while i < len {
+                if i == j {
+                    j += 1;
+                    continue;
+                }
+                if j >= len {
+                    j = 0;
+                    i += 1;
+                }
+                if i >= len {
+                    break;
+                }
+                let k = j;
+                j += 1;
+                return Some((&self[i], &self[k]));
+            }
+            None
+        })
+    }
+}
+
+#[macro_export]
+macro_rules! time {
+    ($e:expr) => {{
+        let start = std::time::Instant::now();
+        let res = { $e };
+        let elapsed = start.elapsed();
+        (res, elapsed)
+    }};
+}
 
 #[macro_export]
 macro_rules! main {
@@ -139,22 +189,22 @@ where
 }
 
 /// Iterates from `(0, 0)`, `(1, 0)`, (2, 0)`, ... to `(cols, rows)`.
-pub fn iter_pos(rows: usize, cols: usize) -> impl Iterator<Item = Pos> {
-    let mut row = 0;
-    let mut col = 0;
-    std::iter::from_fn(move || {
-        if col >= cols {
-            col = 0;
-            row += 1;
-        }
-        if row >= rows {
-            return None;
-        }
-        let c = col;
-        col += 1;
-        Some((c, row))
-    })
-}
+// pub fn iter_pos(rows: usize, cols: usize) -> impl Iterator<Item = Pos> {
+//     let mut row = 0;
+//     let mut col = 0;
+//     std::iter::from_fn(move || {
+//         if col >= cols {
+//             col = 0;
+//             row += 1;
+//         }
+//         if row >= rows {
+//             return None;
+//         }
+//         let c = col;
+//         col += 1;
+//         Some((c, row))
+//     })
+// }
 
 #[macro_export]
 macro_rules! parse_list {

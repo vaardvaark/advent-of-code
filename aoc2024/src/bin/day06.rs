@@ -1,7 +1,7 @@
-use rayon::iter::{IntoParallelIterator, ParallelIterator};
+use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use std::collections::HashSet;
 
-fn explore(grid: &Grid<u8>, pos: Pos) -> Option<HashSet<Pos>> {
+fn explore(grid: &Grid<u8>, pos: Vec2) -> Option<HashSet<Vec2>> {
     let mut visited = HashSet::new();
     let mut visited2 = HashSet::new();
     let mut cursor = grid.cursor(pos);
@@ -38,7 +38,7 @@ fn part2(input: &str) -> impl std::fmt::Display {
     let start = grid.position(|&v| v == b'^').unwrap();
     let positions: Vec<_> = explore(&grid, start).unwrap().into_iter().collect();
     let count = positions
-        .into_par_iter()
+        .par_iter()
         .map(|pos| {
             let mut grid = grid.clone();
             grid.set(pos, b'#');

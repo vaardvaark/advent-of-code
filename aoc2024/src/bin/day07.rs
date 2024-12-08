@@ -1,4 +1,4 @@
-use aoc::parse;
+use aoc::*;
 
 const INPUT: &str = include_str!("../../../input/aoc2024-day07.txt");
 
@@ -59,19 +59,10 @@ fn part2(input: &[(u64, Vec<u64>)]) -> u64 {
         .sum()
 }
 
-macro_rules! time {
-    ($e:expr) => {{
-        let start = std::time::Instant::now();
-        let res = { $e };
-        let elapsed = start.elapsed();
-        (res, elapsed)
-    }};
-}
-
 fn main() {
-    let (lines, elapsed_parse) = time!(parse_input(INPUT));
-    let (part1, elapsed_part1) = time!(part1(&lines));
-    let (part2, elapsed_part2) = time!(part2(&lines));
+    let (parsed, elapsed_parse) = aoc::time!(parse_input(INPUT));
+    let (part1, elapsed_part1) = aoc::time!(part1(&parsed));
+    let (part2, elapsed_part2) = aoc::time!(part2(&parsed));
 
     eprintln!("parse ({elapsed_parse:?})");
     eprintln!("part1: {part1} ({elapsed_part1:?})");

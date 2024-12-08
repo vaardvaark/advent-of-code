@@ -1,4 +1,5 @@
-pub type Pos = (usize, usize);
+use crate::Vec2;
+use core::fmt;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Direction {
@@ -70,7 +71,7 @@ impl<T> Grid<T> {
     }
 
     #[inline]
-    pub fn get(&self, pos: Pos) -> Option<&T> {
+    pub fn get(&self, pos: &Vec2) -> Option<&T> {
         match self.in_bounds(pos) {
             true => Some(&self.data[self.calc_index(pos)]),
             false => None,
@@ -78,71 +79,50 @@ impl<T> Grid<T> {
     }
 
     #[inline]
-    pub fn set(&mut self, pos: Pos, value: T) -> T {
+    pub fn set(&mut self, pos: &Vec2, value: T) -> T {
         assert!(self.in_bounds(pos));
         let index = self.calc_index(pos);
         std::mem::replace(&mut self.data[index], value)
     }
 
-    pub fn left_from(&self, col: usize, row: usize) -> Option<Pos> {
-        if col > 0 && col < self.cols() && row < self.rows() {
-            Some((col - 1, row))
-        } else {
-            None
-        }
-    }
-
-    pub fn right_from(&self, col: usize, row: usize) -> Option<Pos> {
-        if (col + 1) < self.cols() && row < self.rows() {
-            Some((col + 1, row))
-        } else {
-            None
-        }
-    }
-
-    pub fn up_from(&self, col: usize, row: usize) -> Option<Pos> {
-        if row > 0 && col < self.cols() && row < self.rows() {
-            Some((col, row - 1))
-        } else {
-            None
-        }
-    }
-
-    pub fn down_from(&self, col: usize, row: usize) -> Option<Pos> {
-        if col < self.cols() && (row + 1) < self.rows() {
-            Some((col, row + 1))
-        } else {
-            None
-        }
-    }
-
     /// Returns a column-first iterator of all the valid coordinates
     /// in the grid.
     #[inline]
-    pub fn iter_pos(&self) -> impl Iterator<Item = (usize, usize)> {
-        super::iter_pos(self.rows(), self.cols())
+    pub fn iter_pos(&self) -> impl Iterator<Item = Vec2> {
+        let mut row = 0;
+        let mut col = 0;
+        let max_rows = self.rows() as i64;
+        let max_cols = self.cols() as i64;
+        std::iter::from_fn(move || {
+            if col >= max_cols {
+                col = 0;
+                row += 1;
+            }
+            if row >= max_rows {
+                return None;
+            }
+            let c = col;
+            col += 1;
+            Some(Vec2::new(c, row))
+        })
     }
 
-    pub fn cursor<'g>(&'g self, (col, row): Pos) -> Cursor<'g, T> {
-        Cursor {
-            grid: self,
-            col,
-            row,
-        }
+    pub fn cursor<'g>(&'g self, pos: Vec2) -> Cursor<'g, T> {
+        Cursor { grid: self, pos }
     }
 
     #[inline]
-    fn calc_index(&self, (col, row): Pos) -> usize {
-        (row * self.cols()) + col
+    fn calc_index(&self, &Vec2 { x, y }: &Vec2) -> usize {
+        ((y * self.cols() as i64) + x) as usize
     }
 
-    fn in_bounds(&self, (col, row): Pos) -> bool {
-        col < self.cols() && row < self.rows()
+    pub fn in_bounds(&self, &Vec2 { x, y }: &Vec2) -> bool {
+        (x >= 0 && x < self.cols() as i64) && (y >= 0 && y < self.rows() as i64)
     }
 }
 
 impl<T: Eq> Grid<T> {
-    pub fn position<P>(&self, predicate: P) -> Option<Pos>
+    pub fn position<P>(&self, predicate: P) -> Option<Vec2>
     where
         P: Fn(&T) -> bool,
     {
@@ -154,7 +134,7 @@ impl<T: Eq> Grid<T> {
         None
     }
 
-    pub fn position_all<P>(&self, predicate: P) -> Vec<Pos>
+    pub fn position_all<P>(&self, predicate: P) -> Vec<Vec2>
     where
         P: Fn(&T) -> bool,
     {
@@ -164,29 +144,44 @@ impl<T: Eq> Grid<T> {
     }
 }
 
-impl<T> std::ops::Index<Pos> for Grid<T> {
+impl<T> std::ops::Index<Vec2> for Grid<T> {
     type Output = T;
 
     #[inline]
-    fn index(&self, pos: Pos) -> &Self::Output {
-        assert!(self.in_bounds(pos));
-        &self.data[self.calc_index(pos)]
+    fn index(&self, pos: Vec2) -> &Self::Output {
+        assert!(self.in_bounds(&pos));
+        &self.data[self.calc_index(&pos)]
     }
 }
 
-impl<T> std::ops::IndexMut<Pos> for Grid<T> {
-    fn index_mut(&mut self, pos: Pos) -> &mut Self::Output {
-        assert!(self.in_bounds(pos));
-        let index = self.calc_index(pos);
+impl<T> std::ops::IndexMut<Vec2> for Grid<T> {
+    fn index_mut(&mut self, pos: Vec2) -> &mut Self::Output {
+        assert!(self.in_bounds(&pos));
+        let index = self.calc_index(&pos);
         &mut self.data[index]
+    }
+}
+
+impl fmt::Display for Grid<u8> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        for row in 0..self.rows() {
+            for col in 0..self.cols() {
+                let pos = Vec2 {
+                    x: col as i64,
+                    y: row as i64,
+                };
+                write!(f, "{}", self[pos] as char)?;
+            }
+            writeln!(f)?;
+        }
+        Ok(())
     }
 }
 
 /// A two-dimensional cursor associated with a [`Grid`].
 pub struct Cursor<'g, T> {
     grid: &'g Grid<T>,
-    col: usize,
-    row: usize,
+    pos: Vec2,
 }
 
 impl<'g, T> Cursor<'g, T> {
@@ -194,15 +189,14 @@ impl<'g, T> Cursor<'g, T> {
     pub fn new(grid: &'g Grid<T>) -> Self {
         Self {
             grid,
-            col: 0,
-            row: 0,
+            pos: Vec2::new(0, 0),
         }
     }
 
     /// Returns the current position of the `Cursor`.
     #[inline]
-    pub fn pos(&self) -> Pos {
-        (self.col, self.row)
+    pub fn pos(&self) -> Vec2 {
+        self.pos
     }
 
     /// Returns the value of the grid cell for the current cursor
@@ -218,131 +212,74 @@ impl<'g, T> Cursor<'g, T> {
     /// the cursor places it outside the bounds of the grid).
     pub fn step(&mut self, direction: Direction) -> bool {
         use Direction::*;
-        match direction {
-            Up => self.up(),
-            Right => self.right(),
-            Down => self.down(),
-            Left => self.left(),
+        let v = match direction {
+            Up => Vec2::up(),
+            Right => Vec2::right(),
+            Down => Vec2::down(),
+            Left => Vec2::left(),
+        };
+
+        let pos = self.pos + v;
+        if self.grid.in_bounds(&pos) {
+            self.pos = pos;
+            true
+        } else {
+            false
         }
     }
 
     /// Peeks at the cell in the specified direction.
     pub fn peek(&mut self, direction: Direction) -> Option<&T> {
         use Direction::*;
-        match direction {
-            Up => self.peek_up(),
-            Right => self.peek_right(),
-            Down => self.peek_down(),
-            Left => self.peek_left(),
-        }
+        let v = match direction {
+            Up => Vec2::up(),
+            Right => Vec2::right(),
+            Down => Vec2::down(),
+            Left => Vec2::left(),
+        };
+
+        let pos = self.pos + v;
+        self.grid.get(&pos)
     }
 
+    #[inline]
     pub fn right(&mut self) -> bool {
-        if (self.col + 1) < self.grid.cols() {
-            self.col += 1;
-            true
-        } else {
-            false
-        }
+        self.step(Direction::Right)
     }
 
+    #[inline]
     pub fn peek_right(&mut self) -> Option<&T> {
-        if (self.col + 1) < self.grid.cols() {
-            self.grid.get((self.col + 1, self.row))
-        } else {
-            None
-        }
+        self.peek(Direction::Right)
     }
 
+    #[inline]
     pub fn down(&mut self) -> bool {
-        if (self.row + 1) < self.grid.rows() {
-            self.row += 1;
-            true
-        } else {
-            false
-        }
+        self.step(Direction::Down)
     }
 
+    #[inline]
     pub fn peek_down(&mut self) -> Option<&T> {
-        if (self.row + 1) < self.grid.rows() {
-            self.grid.get((self.col, self.row + 1))
-        } else {
-            None
-        }
+        self.peek(Direction::Down)
     }
 
+    #[inline]
     pub fn up(&mut self) -> bool {
-        if self.row > 0 {
-            self.row -= 1;
-            true
-        } else {
-            false
-        }
+        self.step(Direction::Up)
     }
 
+    #[inline]
     pub fn peek_up(&mut self) -> Option<&T> {
-        if self.row > 0 {
-            self.grid.get((self.col, self.row - 1))
-        } else {
-            None
-        }
+        self.peek(Direction::Up)
     }
 
+    #[inline]
     pub fn left(&mut self) -> bool {
-        if self.col > 0 {
-            self.col -= 1;
-            true
-        } else {
-            false
-        }
+        self.step(Direction::Left)
     }
 
+    #[inline]
     pub fn peek_left(&mut self) -> Option<&T> {
-        if self.col > 0 {
-            self.grid.get((self.col - 1, self.row))
-        } else {
-            None
-        }
-    }
-
-    pub fn right_down(&mut self) -> bool {
-        if (self.col + 1) < self.grid.cols() && (self.row + 1) < self.grid.rows() {
-            self.col += 1;
-            self.row += 1;
-            true
-        } else {
-            false
-        }
-    }
-
-    pub fn right_up(&mut self) -> bool {
-        if (self.col + 1) < self.grid.cols() && self.row > 0 {
-            self.col += 1;
-            self.row -= 1;
-            true
-        } else {
-            false
-        }
-    }
-
-    pub fn left_up(&mut self) -> bool {
-        if self.col > 0 && self.row > 0 {
-            self.col -= 1;
-            self.row -= 1;
-            true
-        } else {
-            false
-        }
-    }
-
-    pub fn left_down(&mut self) -> bool {
-        if self.col > 0 && (self.row + 1) < self.grid.rows() {
-            self.col -= 1;
-            self.row += 1;
-            true
-        } else {
-            false
-        }
+        self.peek(Direction::Left)
     }
 }
 
@@ -378,11 +315,11 @@ mod tests {
         let grid = gridify_ascii("ABCDE\nFGHIJ\nKLMNO".lines());
         assert_eq!(grid.rows(), 3);
         assert_eq!(grid.cols(), 5);
-        assert_eq!(grid.get((0, 0)), Some(&b'A'));
-        assert_eq!(grid.get((4, 0)), Some(&b'E'));
-        assert_eq!(grid.get((0, 1)), Some(&b'F'));
-        assert_eq!(grid.get((4, 2)), Some(&b'O'));
-        assert_eq!(grid.get((5, 0)), None);
-        assert_eq!(grid.get((5, 5)), None);
+        assert_eq!(grid.get(&Vec2::new(0, 0)), Some(&b'A'));
+        assert_eq!(grid.get(&Vec2::new(4, 0)), Some(&b'E'));
+        assert_eq!(grid.get(&Vec2::new(0, 1)), Some(&b'F'));
+        assert_eq!(grid.get(&Vec2::new(4, 2)), Some(&b'O'));
+        assert_eq!(grid.get(&Vec2::new(5, 0)), None);
+        assert_eq!(grid.get(&Vec2::new(5, 5)), None);
     }
 }
