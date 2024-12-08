@@ -1,8 +1,6 @@
 mod grid;
 mod vec2;
 
-use std::path::PathBuf;
-
 pub use grid::{gridify_ascii, Cursor, Direction, Grid};
 pub use rayon;
 pub use vec2::Vec2;
@@ -55,129 +53,80 @@ macro_rules! time {
 }
 
 #[macro_export]
-macro_rules! main {
-    () => {
-        use aoc::*;
+macro_rules! test {
+    ($m:ident, $parser:ident, $func:ident, $expect:expr) => {
+        #[test]
+        fn $func() {
+            const INPUT: &str = include_str!(concat!("../examples/", stringify!($m), ".in"));
+            let parsed = super::$parser(INPUT);
+            assert_eq!(super::$func(&parsed).to_string(), ($expect).to_string());
+        }
+    };
+    ($m:ident, $parser:ident, $f:literal, $func:ident, $expect:expr) => {
+        #[test]
+        fn $func() {
+            const INPUT: &str = include_str!(concat!("../examples/", $f));
+            let parsed = super::$parser(INPUT);
+            assert_eq!(super::$func(&parsed).to_string(), ($expect).to_string());
+        }
+    };
+    ($m:ident, $func:ident, $expect:expr) => {
+        #[test]
+        fn $func() {
+            const INPUT: &str = include_str!(concat!("../examples/", stringify!($m), ".in"));
+            assert_eq!(super::$func(INPUT).to_string(), ($expect).to_string());
+        }
+    };
+    ($m:ident, $f:literal, $func:ident, $expect:expr) => {
+        #[test]
+        fn $func() {
+            const INPUT: &str = include_str!(concat!("../examples/", $f));
+            assert_eq!(super::$func(INPUT).to_string(), ($expect).to_string());
+        }
+    };
+}
 
-        const CAL: &str = env!("CARGO_PKG_NAME");
-        const DAY: &str = env!("CARGO_BIN_NAME");
-
+#[macro_export]
+macro_rules! setup {
+    ($m:ident, $parser:ident; $($f1:literal:)? $part1:ident == $e1:expr, $($f2:literal:)? $part2:ident == $e2:expr) => {
         fn main() {
-            let input = if let Some(path) = std::env::args().skip(1).next() {
-                std::fs::read_to_string(&path)
-                    .expect(&format!("failed to read input from {path:?}"))
-            } else {
-                puzzle_input(CAL, DAY)
-            };
-            println!("{DAY}");
-            println!("part1: {}", part1(&input));
-            println!("part2: {}", part2(&input));
-        }
-    };
-}
+            eprintln!("{}", stringify!($m));
+            const INPUT: &str = include_str!(concat!("../input/", stringify!($m), ".in"));
 
-#[macro_export]
-macro_rules! tests {
-    ($day:ident, $value01:literal) => {
+            let (parsed, elapsed_parse) = aoc::time!($parser(INPUT));
+            eprintln!("parse ({elapsed_parse:?})");
+
+            let (part1, elapsed_part1) = aoc::time!($part1(&parsed));
+            eprintln!("part1: {part1} ({elapsed_part1:?})");
+
+            let (part2, elapsed_part2) = aoc::time!($part2(&parsed));
+            eprintln!("part2: {part2} ({elapsed_part2:?})");
+        }
+
         #[cfg(test)]
-        mod $day {
-            #[test]
-            fn part1() {
-                let base = env!("CARGO_MANIFEST_DIR");
-                let input = aoc::test_input(base, super::DAY, aoc::Part::Part1);
-                assert_eq!(super::part1(&input).to_string(), $value01);
-            }
+        mod $m {
+            $crate::test!($m, $parser, $($f1,)? $part1, $e1);
+            $crate::test!($m, $parser, $($f2,)? $part2, $e2);
         }
     };
-    ($day:ident, $value01:literal, $value02:literal) => {
+    ($m:ident; $($f1:literal:)? $part1:ident == $e1:expr, $($f2:literal:)? $part2:ident == $e2:expr) => {
+        fn main() {
+            eprintln!("{}", stringify!($m));
+            const INPUT: &str = include_str!(concat!("../input/", stringify!($m), ".in"));
+
+            let (part1, elapsed_part1) = aoc::time!($part1(INPUT));
+            eprintln!("part1: {part1} ({elapsed_part1:?})");
+
+            let (part2, elapsed_part2) = aoc::time!($part2(INPUT));
+            eprintln!("part2: {part2} ({elapsed_part2:?})");
+        }
+
         #[cfg(test)]
-        mod $day {
-            #[test]
-            fn part1() {
-                let base = env!("CARGO_MANIFEST_DIR");
-                let input = aoc::test_input(base, super::DAY, aoc::Part::Part1);
-                assert_eq!(super::part1(&input).to_string(), $value01);
-            }
-            #[test]
-            fn part2() {
-                let base = env!("CARGO_MANIFEST_DIR");
-                let input = aoc::test_input(base, super::DAY, aoc::Part::Part2);
-                assert_eq!(super::part2(&input).to_string(), $value02);
-            }
+        mod $m {
+            $crate::test!($m, $($f1,)? $part1, $e1);
+            $crate::test!($m, $($f2,)? $part2, $e2);
         }
     };
-}
-
-#[macro_export]
-macro_rules! aoc {
-    ($day:ident) => {
-        aoc::main!();
-    };
-    ($day:ident, $value01:literal) => {
-        aoc::main!();
-        aoc::tests!($day, $value01);
-    };
-    ($day:ident, $value01:literal, $value02:literal) => {
-        aoc::main!();
-        aoc::tests!($day, $value01, $value02);
-    };
-}
-
-#[derive(Debug)]
-pub enum Part {
-    Part1,
-    Part2,
-}
-
-impl std::fmt::Display for Part {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Part1 => write!(f, "part1"),
-            Self::Part2 => write!(f, "part2"),
-        }
-    }
-}
-
-pub fn test_input(base: &str, day: &str, part: Part) -> String {
-    let mut base = PathBuf::from(base);
-    base.push("examples");
-
-    let mut part_input = base.clone();
-    part_input.push(format!("{}-{part}.txt", day.replace("day", "example")));
-
-    if let Ok(input) = std::fs::read_to_string(&part_input) {
-        return input;
-    }
-
-    // try more general example
-    part_input.pop();
-    part_input.push(format!("{}.txt", day.replace("day", "example")));
-    if let Ok(input) = std::fs::read_to_string(&part_input) {
-        return input;
-    }
-
-    panic!("could not load example input");
-}
-
-pub fn puzzle_input(year: &str, day: &str) -> String {
-    let mut path = std::env::current_dir().unwrap();
-    path.push(format!("input"));
-    path.push(format!("{year}-{day}.txt"));
-
-    let input = match std::fs::read_to_string(&path) {
-        Ok(input) => input,
-        Err(error) => {
-            eprintln!("failed to read puzzle input from {path:?}: {error}");
-            eprintln!("place puzzle input in {path:?}, or provide filename on command line.");
-            std::process::exit(1);
-        }
-    };
-
-    if input.is_empty() {
-        eprintln!("WARNING: puzzle input empty");
-    }
-
-    input
 }
 
 pub fn parse<T>(s: impl AsRef<str>) -> T
@@ -187,24 +136,6 @@ where
 {
     s.as_ref().parse().unwrap()
 }
-
-/// Iterates from `(0, 0)`, `(1, 0)`, (2, 0)`, ... to `(cols, rows)`.
-// pub fn iter_pos(rows: usize, cols: usize) -> impl Iterator<Item = Pos> {
-//     let mut row = 0;
-//     let mut col = 0;
-//     std::iter::from_fn(move || {
-//         if col >= cols {
-//             col = 0;
-//             row += 1;
-//         }
-//         if row >= rows {
-//             return None;
-//         }
-//         let c = col;
-//         col += 1;
-//         Some((c, row))
-//     })
-// }
 
 #[macro_export]
 macro_rules! parse_list {

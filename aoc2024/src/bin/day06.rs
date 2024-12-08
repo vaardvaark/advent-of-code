@@ -1,3 +1,4 @@
+use aoc::*;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use std::collections::HashSet;
 
@@ -50,4 +51,8 @@ fn part2(input: &str) -> impl std::fmt::Display {
     count
 }
 
-aoc::aoc!(day06, "41", "6");
+aoc::setup! {
+    day06;
+    part1 == 41,
+    part2 == 6
+}

@@ -8,26 +8,38 @@ pub struct Vec2 {
 }
 
 impl Vec2 {
+    #[inline]
+    #[must_use]
     pub fn new(x: i64, y: i64) -> Self {
         Self { x, y }
     }
 
+    #[inline]
+    #[must_use]
     pub fn left() -> Self {
         Vec2 { x: -1, y: 0 }
     }
 
+    #[inline]
+    #[must_use]
     pub fn right() -> Self {
         Vec2 { x: 1, y: 0 }
     }
 
+    #[inline]
+    #[must_use]
     pub fn up() -> Self {
         Vec2 { x: 0, y: -1 }
     }
 
+    #[inline]
+    #[must_use]
     pub fn down() -> Self {
         Vec2 { x: 0, y: 1 }
     }
 
+    #[inline]
+    #[must_use]
     pub fn reverse(&self) -> Self {
         let Vec2 { x, y } = self;
         Vec2 { x: -x, y: -y }

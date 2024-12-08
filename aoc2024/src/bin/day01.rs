@@ -1,3 +1,4 @@
+use aoc::*;
 use std::collections::HashMap;
 
 fn part1(input: &str) -> impl std::fmt::Display {
@@ -5,7 +6,7 @@ fn part1(input: &str) -> impl std::fmt::Display {
     left.sort();
     right.sort();
     left.into_iter()
-        .zip(right.into_iter())
+        .zip(right)
         .map(|(a, b)| a.abs_diff(b))
         .sum::<usize>()
 }
@@ -22,4 +23,8 @@ fn part2(input: &str) -> impl std::fmt::Display {
         .sum::<usize>()
 }
 
-aoc::aoc!(day01, "11", "31");
+aoc::setup! {
+    day01;
+    part1 == 11,
+    part2 == 31
+}

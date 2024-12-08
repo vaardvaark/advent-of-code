@@ -96,4 +96,8 @@ fn take_mul(tokens: &mut Lexer<Token>) -> Option<(usize, usize)> {
     Some((lval, rval))
 }
 
-aoc::aoc!(day03, "161", "48");
+aoc::setup! {
+    day03;
+    part1 == 161,
+    "day03-part2.in": part2 == 48
+}

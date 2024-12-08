@@ -107,7 +107,7 @@ impl<T> Grid<T> {
         })
     }
 
-    pub fn cursor<'g>(&'g self, pos: Vec2) -> Cursor<'g, T> {
+    pub fn cursor(&self, pos: Vec2) -> Cursor<T> {
         Cursor { grid: self, pos }
     }
 
@@ -126,12 +126,7 @@ impl<T: Eq> Grid<T> {
     where
         P: Fn(&T) -> bool,
     {
-        for pos in self.iter_pos() {
-            if predicate(&self[pos]) {
-                return Some(pos);
-            }
-        }
-        None
+        self.iter_pos().find(|&pos| predicate(&self[pos]))
     }
 
     pub fn position_all<P>(&self, predicate: P) -> Vec<Vec2>

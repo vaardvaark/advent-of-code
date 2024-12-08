@@ -1,3 +1,4 @@
+use aoc::*;
 use std::{
     cmp::Ordering,
     collections::{HashMap, HashSet},
@@ -99,4 +100,8 @@ fn part2(input: &str) -> impl std::fmt::Display {
     updates.invalid().make_valid().sum_middles()
 }
 
-aoc::aoc!(day05, "143", "123");
+aoc::setup! {
+    day05;
+    part1 == 143,
+    part2 == 123
+}

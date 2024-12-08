@@ -1,3 +1,4 @@
+use aoc::*;
 use std::cmp::Ordering;
 
 fn part1(input: &str) -> impl std::fmt::Display {
@@ -11,7 +12,7 @@ fn part1(input: &str) -> impl std::fmt::Display {
             samples
                 .windows(2)
                 .map(|window| window[0].abs_diff(window[1]))
-                .all(|delta| delta >= 1 && delta <= 3 && delta != 0)
+                .all(|delta| (1..=3).contains(&delta) && delta != 0)
         })
         .count()
 }
@@ -36,7 +37,7 @@ fn part2(input: &str) -> impl std::fmt::Display {
                     samples
                         .windows(2)
                         .map(|window| window[0].abs_diff(window[1]))
-                        .all(|delta| delta >= 1 && delta <= 3 && delta != 0)
+                        .all(|delta| (1..=3).contains(&delta) && delta != 0)
                 })
                 .any(|v| v)
         })
@@ -45,7 +46,7 @@ fn part2(input: &str) -> impl std::fmt::Display {
 
 /// Determines whether an iterator produces monotonically increasing,
 /// or monotonically decreasing values.
-fn monotonic<I, T>(mut iterator: I) -> bool
+fn monotonic<I, T>(iterator: I) -> bool
 where
     I: Iterator<Item = T>,
     T: Copy + Ord,
@@ -54,7 +55,7 @@ where
     let mut has_increased = false;
     let mut has_decreased = false;
 
-    while let Some(next) = iterator.next() {
+    for next in iterator {
         let Some(prev) = first.replace(next) else {
             continue;
         };
@@ -79,4 +80,8 @@ where
     true
 }
 
-aoc::aoc!(day02, "2", "4");
+aoc::setup! {
+    day02;
+    part1 == 2,
+    part2 == 4
+}

@@ -1,7 +1,5 @@
 use aoc::*;
 
-const INPUT: &str = include_str!("../../../input/aoc2024-day07.txt");
-
 fn parse_input(input: &str) -> Vec<(u64, Vec<u64>)> {
     input
         .lines()
@@ -59,26 +57,8 @@ fn part2(input: &[(u64, Vec<u64>)]) -> u64 {
         .sum()
 }
 
-fn main() {
-    let (parsed, elapsed_parse) = aoc::time!(parse_input(INPUT));
-    let (part1, elapsed_part1) = aoc::time!(part1(&parsed));
-    let (part2, elapsed_part2) = aoc::time!(part2(&parsed));
-
-    eprintln!("parse ({elapsed_parse:?})");
-    eprintln!("part1: {part1} ({elapsed_part1:?})");
-    eprintln!("part2: {part2} ({elapsed_part2:?})");
-}
-
-#[cfg(test)]
-mod day07 {
-    #[test]
-    fn part1() {
-        let input = super::parse_input(include_str!("../../examples/example07.txt"));
-        assert_eq!(super::part1(&input), 3749);
-    }
-    #[test]
-    fn part2() {
-        let input = super::parse_input(include_str!("../../examples/example07.txt"));
-        assert_eq!(super::part2(&input), 11387);
-    }
+aoc::setup! {
+    day07, parse_input;
+    part1 == 3749,
+    part2 == 11387
 }

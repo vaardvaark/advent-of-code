@@ -1,3 +1,5 @@
+use aoc::*;
+
 fn part1(input: &str) -> impl std::fmt::Display {
     let grid = gridify_ascii(input.lines());
     let mut count = 0;
@@ -66,7 +68,7 @@ fn part2(input: &str) -> impl std::fmt::Display {
 }
 fn map(grid: &Grid<u8>, positions: &[Vec2]) -> Option<String> {
     let bytes: Vec<_> = positions
-        .into_iter()
+        .iter()
         .filter_map(|pos| grid.get(pos).copied())
         .collect();
 
@@ -77,4 +79,8 @@ fn map(grid: &Grid<u8>, positions: &[Vec2]) -> Option<String> {
     }
 }
 
-aoc::aoc!(day04, "18", "9");
+aoc::setup! {
+    day04;
+    part1 == 18,
+    "day04-part2.in": part2 == 9
+}
