@@ -174,6 +174,7 @@ impl fmt::Display for Grid<u8> {
 }
 
 /// A two-dimensional cursor associated with a [`Grid`].
+#[derive(Clone, Debug)]
 pub struct Cursor<'g, T> {
     grid: &'g Grid<T>,
     pos: Vec2,
@@ -224,7 +225,7 @@ impl<'g, T> Cursor<'g, T> {
     }
 
     /// Peeks at the cell in the specified direction.
-    pub fn peek(&mut self, direction: Direction) -> Option<&T> {
+    pub fn peek(&self, direction: Direction) -> Option<&T> {
         use Direction::*;
         let v = match direction {
             Up => Vec2::up(),
