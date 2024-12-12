@@ -11,9 +11,8 @@ fn part1(map: &Parsed) -> impl std::fmt::Display {
     let mut coords: BTreeSet<Vec2> = BTreeSet::from_iter(map.iter_pos());
     let mut price = 0;
     while let Some(coord) = coords.pop_first() {
-        let cursor = map.cursor(coord);
         let mut visited = BTreeSet::new();
-        let perimeter = explore_region(cursor, &mut visited);
+        let perimeter = explore_region(map.cursor(coord), &mut visited);
         for c in &visited {
             coords.remove(c);
         }
@@ -26,9 +25,8 @@ fn part2(map: &Parsed) -> impl std::fmt::Display {
     let mut coords: BTreeSet<Vec2> = BTreeSet::from_iter(map.iter_pos());
     let mut price = 0;
     while let Some(coord) = coords.pop_first() {
-        let cursor = map.cursor(coord);
         let mut visited = BTreeSet::new();
-        let _ = explore_region(cursor, &mut visited);
+        let _ = explore_region(map.cursor(coord), &mut visited);
         let sides = count_sides(&visited);
         for c in &visited {
             coords.remove(c);
@@ -59,80 +57,42 @@ fn count_sides(region: &BTreeSet<Vec2>) -> u64 {
     let rows: BTreeSet<i64> = region.iter().map(|&Vec2 { y, .. }| y).collect();
     let cols: BTreeSet<i64> = region.iter().map(|&Vec2 { x, .. }| x).collect();
 
+    let scan = |acc: &dyn Fn(&Vec2) -> i64, f: &dyn Fn(&Vec2) -> bool| {
+        let mut prev: Option<&Vec2> = None;
+        let mut sides = 0;
+        for pos in region.iter().filter(|v| f(v)) {
+            match prev {
+                None => sides += 1,
+                Some(prev) => {
+                    if acc(prev) + 1 != acc(pos) {
+                        sides += 1
+                    }
+                }
+            }
+            prev.replace(pos);
+        }
+        sides
+    };
+
     // scan top -> bottom
     let mut sides = 0;
     for row in rows {
-        let mut blocks = 0;
-
-        // Select positions in the region which can count as an upper edge.
-        let positions: Vec<_> = region
-            .iter()
-            .filter(|pos| pos.y == row && !region.contains(&pos.with_y(pos.y - 1)))
-            .collect();
-
-        // Iff there are any counting positions, then there must be a minimum of one
-        // side.
-        if !positions.is_empty() {
-            blocks += 1;
-        }
-
-        // Find discontinuities in the top edge of this row.
-        blocks += positions
-            .windows(2)
-            .map(|window| if window[0].x + 1 != window[1].x { 1 } else { 0 })
-            .sum::<u64>();
-
-        // Select positions in the region which can count as an upper edge.
-        let positions: Vec<_> = region
-            .iter()
-            .filter(|pos| pos.y == row && !region.contains(&pos.with_y(pos.y + 1)))
-            .collect();
-
-        if !positions.is_empty() {
-            blocks += 1;
-        }
-
-        // Find discontinuities in the bottom edge of this row.
-        blocks += positions
-            .windows(2)
-            .map(|window| if window[0].x + 1 != window[1].x { 1 } else { 0 })
-            .sum::<u64>();
-
-        sides += blocks;
+        sides += scan(&|pos| pos.x, &|pos| {
+            pos.y == row && !region.contains(&pos.with_y(pos.y - 1))
+        });
+        sides += scan(&|pos| pos.x, &|pos| {
+            pos.y == row && !region.contains(&pos.with_y(pos.y + 1))
+        });
     }
 
     // scan left -> right
     for col in cols {
-        let mut blocks = 0;
-        let positions: Vec<_> = region
-            .iter()
-            .filter(|pos| pos.x == col && !region.contains(&pos.with_x(pos.x - 1)))
-            .collect();
-
-        if !positions.is_empty() {
-            blocks += 1;
-        }
-
-        blocks += positions
-            .windows(2)
-            .map(|window| if window[0].y + 1 != window[1].y { 1 } else { 0 })
-            .sum::<u64>();
-
-        let positions: Vec<_> = region
-            .iter()
-            .filter(|pos| pos.x == col && !region.contains(&pos.with_x(pos.x + 1)))
-            .collect();
-
-        if !positions.is_empty() {
-            blocks += 1;
-        }
-
-        blocks += positions
-            .windows(2)
-            .map(|window| if window[0].y + 1 != window[1].y { 1 } else { 0 })
-            .sum::<u64>();
-
-        sides += blocks;
+        sides += scan(&|pos| pos.y, &|pos| {
+            pos.x == col && !region.contains(&pos.with_x(pos.x - 1))
+        });
+        sides += scan(&|pos| pos.y, &|pos| {
+            pos.x == col && !region.contains(&pos.with_x(pos.x + 1))
+        });
     }
 
     sides
