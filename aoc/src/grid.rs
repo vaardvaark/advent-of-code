@@ -46,6 +46,11 @@ impl Direction {
             _ => None,
         }
     }
+
+    pub fn iter() -> impl Iterator<Item = Self> {
+        use Direction::*;
+        [Up, Right, Down, Left].into_iter()
+    }
 }
 
 #[derive(Clone, Debug)]

@@ -4,7 +4,7 @@ members = ["aoc", "aoc2024"]
 default-members = ["aoc2024"]
 
 [workspace.package]
-version = "0.1.1"
+version = "0.2.1"
 authors = ["Vaardvaark <190547174+vaardvaark@users.noreply.github.com>"]
 edition = "2021"
 rust-version = "1.83"

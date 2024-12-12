@@ -92,7 +92,7 @@ macro_rules! test {
 pub fn load(fallback: &'static str) -> (Cow<'static, str>, &'static str) {
     const MSG: &str = "puzzle input (finish with ^D): ";
     let mut arguments = std::env::args().skip(1);
-    match (&mut arguments).next().as_deref() {
+    match arguments.next().as_deref() {
         Some("-") => {
             print!("{}", MSG);
             std::io::stdout().flush().unwrap();
@@ -103,7 +103,7 @@ pub fn load(fallback: &'static str) -> (Cow<'static, str>, &'static str) {
             // Concatenate all following arguments and use as input.
             let mut input = String::new();
             for argument in arguments {
-                input.push_str(" ");
+                input.push(' ');
                 input.push_str(&argument);
             }
             (Cow::Owned(input), "")

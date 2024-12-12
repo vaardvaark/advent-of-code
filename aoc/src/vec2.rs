@@ -1,7 +1,7 @@
 use crate::Direction;
 use std::ops;
 
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Vec2 {
     pub x: i64,
     pub y: i64,
@@ -43,6 +43,16 @@ impl Vec2 {
     pub fn reverse(&self) -> Self {
         let Vec2 { x, y } = self;
         Vec2 { x: -x, y: -y }
+    }
+
+    pub fn with_x(mut self, x: i64) -> Self {
+        self.x = x;
+        self
+    }
+
+    pub fn with_y(mut self, y: i64) -> Self {
+        self.y = y;
+        self
     }
 }
 
