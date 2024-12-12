@@ -3,6 +3,8 @@ mod vec2;
 
 pub use grid::{gridify_ascii, Cursor, Direction, Grid};
 pub use rayon;
+pub use std::borrow::Cow;
+use std::io::Write;
 pub use vec2::Vec2;
 
 pub trait AllPairs<T> {
@@ -54,36 +56,72 @@ macro_rules! time {
 
 #[macro_export]
 macro_rules! test {
-    ($m:ident, $parser:ident, $func:ident, $expect:expr) => {
+    ($m:ident, $name:ident, $parser:ident, $func:ident, $expect:expr) => {
         #[test]
-        fn $func() {
+        fn $name() {
             const INPUT: &str = include_str!(concat!("../examples/", stringify!($m), ".in"));
             let parsed = super::$parser(INPUT);
             assert_eq!(super::$func(&parsed).to_string(), ($expect).to_string());
         }
     };
-    ($m:ident, $parser:ident, $f:literal, $func:ident, $expect:expr) => {
+    ($m:ident, $name: ident, $parser:ident, $f:literal, $func:ident, $expect:expr) => {
         #[test]
-        fn $func() {
+        fn $name() {
             const INPUT: &str = include_str!(concat!("../examples/", $f));
             let parsed = super::$parser(INPUT);
             assert_eq!(super::$func(&parsed).to_string(), ($expect).to_string());
         }
     };
-    ($m:ident, $func:ident, $expect:expr) => {
+    ($m:ident, $name:ident, $func:ident, $expect:expr) => {
         #[test]
-        fn $func() {
+        fn $name() {
             const INPUT: &str = include_str!(concat!("../examples/", stringify!($m), ".in"));
             assert_eq!(super::$func(INPUT).to_string(), ($expect).to_string());
         }
     };
-    ($m:ident, $f:literal, $func:ident, $expect:expr) => {
+    ($m:ident, $name:ident, $f:literal, $func:ident, $expect:expr) => {
         #[test]
-        fn $func() {
+        fn $name() {
             const INPUT: &str = include_str!(concat!("../examples/", $f));
             assert_eq!(super::$func(INPUT).to_string(), ($expect).to_string());
         }
     };
+}
+
+#[inline(never)]
+pub fn load(fallback: &'static str) -> (Cow<'static, str>, &'static str) {
+    const MSG: &str = "puzzle input (finish with ^D): ";
+    let mut arguments = std::env::args().skip(1);
+    match (&mut arguments).next().as_deref() {
+        Some("-") => {
+            print!("{}", MSG);
+            std::io::stdout().flush().unwrap();
+            let input = std::io::read_to_string(std::io::stdin()).unwrap();
+            (Cow::Owned(input), "\n")
+        }
+        Some("-i") | Some("--input") => {
+            // Concatenate all following arguments and use as input.
+            let mut input = String::new();
+            for argument in arguments {
+                input.push_str(" ");
+                input.push_str(&argument);
+            }
+            (Cow::Owned(input), "")
+        }
+        Some(path) => {
+            let input = std::fs::read_to_string(path).unwrap();
+            (Cow::Owned(input), "\n")
+        }
+        None if !fallback.trim().is_empty() => (Cow::Borrowed(fallback), ""),
+        None => {
+            // Fallback is empty and no file path has been provided; read
+            // from stdin.
+            print!("{}", MSG);
+            std::io::stdout().flush().unwrap();
+            let input = std::io::read_to_string(std::io::stdin()).unwrap();
+            (Cow::Owned(input), "\n")
+        }
+    }
 }
 
 #[macro_export]
@@ -92,9 +130,11 @@ macro_rules! setup {
         fn main() {
             eprintln!("{}", stringify!($m));
             const INPUT: &str = include_str!(concat!("../input/", stringify!($m), ".in"));
+            let (input, pre) = $crate::load(INPUT);
+            let trimmed_input = input.trim();
 
-            let (parsed, elapsed_parse) = aoc::time!($parser(INPUT));
-            eprintln!("parse ({elapsed_parse:?})");
+            let (parsed, elapsed_parse) = aoc::time!($parser(trimmed_input));
+            eprintln!("{pre}parse ({elapsed_parse:?})");
 
             let (part1, elapsed_part1) = aoc::time!($part1(&parsed));
             eprintln!("part1: {part1} ({elapsed_part1:?})");
@@ -105,26 +145,28 @@ macro_rules! setup {
 
         #[cfg(test)]
         mod $m {
-            $crate::test!($m, $parser, $($f1,)? $part1, $e1);
-            $crate::test!($m, $parser, $($f2,)? $part2, $e2);
+            $crate::test!($m, part1_example, $parser, $($f1,)? $part1, $e1);
+            $crate::test!($m, part2_example, $parser, $($f2,)? $part2, $e2);
         }
     };
     ($m:ident; $($f1:literal:)? $part1:ident == $e1:expr, $($f2:literal:)? $part2:ident == $e2:expr) => {
         fn main() {
             eprintln!("{}", stringify!($m));
             const INPUT: &str = include_str!(concat!("../input/", stringify!($m), ".in"));
+            let (input, pre) = $crate::load(INPUT);
+            let trimmed_input = input.trim();
 
-            let (part1, elapsed_part1) = aoc::time!($part1(INPUT));
-            eprintln!("part1: {part1} ({elapsed_part1:?})");
+            let (part1, elapsed_part1) = aoc::time!($part1(trimmed_input));
+            eprintln!("{pre}part1: {part1} ({elapsed_part1:?})");
 
-            let (part2, elapsed_part2) = aoc::time!($part2(INPUT));
+            let (part2, elapsed_part2) = aoc::time!($part2(trimmed_input));
             eprintln!("part2: {part2} ({elapsed_part2:?})");
         }
 
         #[cfg(test)]
         mod $m {
-            $crate::test!($m, $($f1,)? $part1, $e1);
-            $crate::test!($m, $($f2,)? $part2, $e2);
+            $crate::test!($m, part1_example, $($f1,)? $part1, $e1);
+            $crate::test!($m, part2_example, $($f2,)? $part2, $e2);
         }
     };
 }
