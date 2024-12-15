@@ -3,6 +3,7 @@ mod vec2;
 
 pub use grid::{gridify_ascii, Cursor, Direction, Grid};
 pub use rayon;
+pub use regex;
 pub use std::borrow::Cow;
 use std::io::Write;
 pub use vec2::Vec2;
@@ -167,6 +168,27 @@ macro_rules! setup {
         mod $m {
             $crate::test!($m, part1_example, $($f1,)? $part1, $e1);
             $crate::test!($m, part2_example, $($f2,)? $part2, $e2);
+        }
+    };
+    ($m:ident, $parser:ident;) => {
+        fn main() {
+            eprintln!("{}", stringify!($m));
+            const INPUT: &str = include_str!(concat!("../input/", stringify!($m), ".in"));
+            let (input, pre) = $crate::load(INPUT);
+            let trimmed_input = input.trim();
+
+            let (parsed, elapsed_parse) = aoc::time!($parser(trimmed_input));
+            eprintln!("{pre}parse ({elapsed_parse:?})");
+            eprintln!("{parsed:?}");
+        }
+    };
+    ($m:ident) => {
+        fn main() {
+            eprintln!("{}", stringify!($m));
+            const INPUT: &str = include_str!(concat!("../input/", stringify!($m), ".in"));
+            let (input, pre) = $crate::load(INPUT);
+            let trimmed_input = input.trim();
+            eprintln!("{trimmed_input}");
         }
     };
 }
