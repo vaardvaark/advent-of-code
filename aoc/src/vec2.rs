@@ -54,6 +54,13 @@ impl Vec2 {
         self.y = y;
         self
     }
+
+    pub fn translate(mut self, r: impl Into<Vec2>) -> Self {
+        let r = r.into();
+        self.x += r.x;
+        self.y += r.y;
+        self
+    }
 }
 
 impl ops::Sub<Vec2> for Vec2 {
