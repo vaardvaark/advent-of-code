@@ -60,6 +60,16 @@ pub struct Grid<T> {
     data: Vec<T>,
 }
 
+impl<T: Default + Clone> Grid<T> {
+    pub fn new_empty(rows: usize, cols: usize) -> Self {
+        Self {
+            rows,
+            cols,
+            data: vec![T::default(); rows * cols],
+        }
+    }
+}
+
 impl<T> Grid<T> {
     pub fn new(rows: usize, cols: usize, data: Vec<T>) -> Self {
         Self { rows, cols, data }
@@ -171,6 +181,25 @@ impl fmt::Display for Grid<u8> {
                     y: row as i64,
                 };
                 write!(f, "{}", self[pos] as char)?;
+            }
+            writeln!(f)?;
+        }
+        Ok(())
+    }
+}
+
+impl fmt::Display for Grid<bool> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        for row in 0..self.rows() {
+            for col in 0..self.cols() {
+                let pos = Vec2 {
+                    x: col as i64,
+                    y: row as i64,
+                };
+                match self[pos] {
+                    true => write!(f, "█")?,
+                    false => write!(f, " ")?,
+                }
             }
             writeln!(f)?;
         }
