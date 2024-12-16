@@ -1,8 +1,9 @@
 use crate::Vec2;
 use core::fmt;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Direction {
+    #[default]
     Up,
     Right,
     Down,
