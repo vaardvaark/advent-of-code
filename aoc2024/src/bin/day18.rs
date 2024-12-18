@@ -30,14 +30,16 @@ fn part2(coords: &Parsed, end: Vec2) -> impl std::fmt::Display {
 
     for coord in coords.iter().rev() {
         grid.set(coord, false);
-        let min = Direction::iter()
-            .filter_map(|direction| min_distance.get(&coord.translate(direction)))
+        let Some(min) = Direction::iter()
+            .filter_map(|direction| {
+                min_distance
+                    .get(&coord.translate(direction))
+                    .filter(|&&d| d != u64::MAX)
+            })
             .min()
-            .unwrap_or(&u64::MAX);
-
-        if min == &u64::MAX {
+        else {
             continue;
-        }
+        };
 
         if compute_distance(min + 1, *coord, end, &grid, &mut min_distance) != u64::MAX {
             return format!("{},{}", coord.x, coord.y);
