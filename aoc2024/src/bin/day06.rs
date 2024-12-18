@@ -6,7 +6,7 @@ fn explore(grid: &Grid<u8>, pos: Vec2) -> Option<HashSet<Vec2>> {
     let mut visited = HashSet::new();
     let mut visited2 = HashSet::new();
     let mut cursor = grid.cursor(pos);
-    let mut direction = Direction::Up;
+    let mut direction = Cardinal::North;
     loop {
         if !visited2.insert((cursor.pos(), direction)) {
             return None;

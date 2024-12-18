@@ -36,10 +36,10 @@ fn walk(cursor: Cursor<u8>, mut path: Vec<Vec2>) -> HashSet<Vec<Vec2>> {
     }
     let mut peaks = HashSet::new();
     for direction in [
-        Direction::Up,
-        Direction::Right,
-        Direction::Down,
-        Direction::Left,
+        Cardinal::North,
+        Cardinal::East,
+        Cardinal::South,
+        Cardinal::West,
     ] {
         if cursor.peek(direction).is_some_and(|&v| v == value + 1) {
             let mut cursor = cursor.clone();

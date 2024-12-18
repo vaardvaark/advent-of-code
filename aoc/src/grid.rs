@@ -1,56 +1,58 @@
 use crate::Vec2;
 use core::fmt;
 
+/// Cardinal directions.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum Direction {
+pub enum Cardinal {
     #[default]
-    Up,
-    Right,
-    Down,
-    Left,
+    North,
+    East,
+    South,
+    West,
 }
 
-impl Direction {
+impl Cardinal {
     pub fn next_clockwise(&self) -> Self {
         match self {
-            Self::Up => Self::Right,
-            Self::Right => Self::Down,
-            Self::Down => Self::Left,
-            Self::Left => Self::Up,
+            Self::North => Self::East,
+            Self::East => Self::South,
+            Self::South => Self::West,
+            Self::West => Self::North,
         }
     }
 
     pub fn prev_clockwise(&self) -> Self {
         match self {
-            Self::Up => Self::Left,
-            Self::Right => Self::Up,
-            Self::Down => Self::Right,
-            Self::Left => Self::Down,
+            Self::North => Self::West,
+            Self::East => Self::North,
+            Self::South => Self::East,
+            Self::West => Self::South,
         }
     }
 
     pub fn reverse(&self) -> Self {
         match self {
-            Self::Up => Self::Down,
-            Self::Right => Self::Left,
-            Self::Down => Self::Up,
-            Self::Left => Self::Right,
+            Self::North => Self::South,
+            Self::East => Self::West,
+            Self::South => Self::North,
+            Self::West => Self::East,
         }
     }
 
     pub fn from_ascii(value: u8) -> Option<Self> {
         match value {
-            b'^' => Some(Self::Up),
-            b'>' => Some(Self::Right),
-            b'v' => Some(Self::Down),
-            b'<' => Some(Self::Left),
+            b'N' | b'n' | b'^' => Some(Self::North),
+            b'E' | b'e' | b'>' => Some(Self::East),
+            b'S' | b's' | b'v' => Some(Self::South),
+            b'W' | b'w' | b'<' => Some(Self::West),
             _ => None,
         }
     }
 
+    /// Iterates over the cardinal directions once.
     pub fn iter() -> impl Iterator<Item = Self> {
-        use Direction::*;
-        [Up, Right, Down, Left].into_iter()
+        use Cardinal::*;
+        [North, East, South, West].into_iter()
     }
 }
 
@@ -62,7 +64,7 @@ pub struct Grid<T> {
 }
 
 impl<T: Default + Clone> Grid<T> {
-    pub fn new_empty(rows: usize, cols: usize) -> Self {
+    pub fn new(cols: usize, rows: usize) -> Self {
         Self {
             rows,
             cols,
@@ -82,10 +84,6 @@ impl<T: Clone> Grid<T> {
 }
 
 impl<T> Grid<T> {
-    pub fn new(rows: usize, cols: usize, data: Vec<T>) -> Self {
-        Self { rows, cols, data }
-    }
-
     #[inline]
     pub fn cols(&self) -> usize {
         self.cols
@@ -170,14 +168,24 @@ impl<T> std::ops::Index<Vec2> for Grid<T> {
 
     #[inline]
     fn index(&self, pos: Vec2) -> &Self::Output {
-        assert!(self.in_bounds(&pos));
+        assert!(
+            self.in_bounds(&pos),
+            "{pos} not in grid bounded by (0, 0) -> ({}, {})",
+            self.cols(),
+            self.rows()
+        );
         &self.data[self.calc_index(&pos)]
     }
 }
 
 impl<T> std::ops::IndexMut<Vec2> for Grid<T> {
     fn index_mut(&mut self, pos: Vec2) -> &mut Self::Output {
-        assert!(self.in_bounds(&pos));
+        assert!(
+            self.in_bounds(&pos),
+            "{pos} not in grid bounded by (0, 0) -> ({}, {})",
+            self.cols(),
+            self.rows()
+        );
         let index = self.calc_index(&pos);
         &mut self.data[index]
     }
@@ -272,13 +280,13 @@ impl<'g, T> Cursor<'g, T> {
     ///
     /// Returns false if the cursor could not be moved (eg. if moving
     /// the cursor places it outside the bounds of the grid).
-    pub fn step(&mut self, direction: Direction) -> bool {
-        use Direction::*;
+    pub fn step(&mut self, direction: Cardinal) -> bool {
+        use Cardinal::*;
         let v = match direction {
-            Up => Vec2::up(),
-            Right => Vec2::right(),
-            Down => Vec2::down(),
-            Left => Vec2::left(),
+            North => Vec2::up(),
+            East => Vec2::right(),
+            South => Vec2::down(),
+            West => Vec2::left(),
         };
 
         let pos = self.pos + v;
@@ -291,13 +299,13 @@ impl<'g, T> Cursor<'g, T> {
     }
 
     /// Peeks at the cell in the specified direction.
-    pub fn peek(&self, direction: Direction) -> Option<&T> {
-        use Direction::*;
+    pub fn peek(&self, direction: Cardinal) -> Option<&T> {
+        use Cardinal::*;
         let v = match direction {
-            Up => Vec2::up(),
-            Right => Vec2::right(),
-            Down => Vec2::down(),
-            Left => Vec2::left(),
+            North => Vec2::up(),
+            East => Vec2::right(),
+            South => Vec2::down(),
+            West => Vec2::left(),
         };
 
         let pos = self.pos + v;
@@ -306,42 +314,42 @@ impl<'g, T> Cursor<'g, T> {
 
     #[inline]
     pub fn right(&mut self) -> bool {
-        self.step(Direction::Right)
+        self.step(Cardinal::East)
     }
 
     #[inline]
     pub fn peek_right(&mut self) -> Option<&T> {
-        self.peek(Direction::Right)
+        self.peek(Cardinal::East)
     }
 
     #[inline]
     pub fn down(&mut self) -> bool {
-        self.step(Direction::Down)
+        self.step(Cardinal::South)
     }
 
     #[inline]
     pub fn peek_down(&mut self) -> Option<&T> {
-        self.peek(Direction::Down)
+        self.peek(Cardinal::South)
     }
 
     #[inline]
     pub fn up(&mut self) -> bool {
-        self.step(Direction::Up)
+        self.step(Cardinal::North)
     }
 
     #[inline]
     pub fn peek_up(&mut self) -> Option<&T> {
-        self.peek(Direction::Up)
+        self.peek(Cardinal::North)
     }
 
     #[inline]
     pub fn left(&mut self) -> bool {
-        self.step(Direction::Left)
+        self.step(Cardinal::West)
     }
 
     #[inline]
     pub fn peek_left(&mut self) -> Option<&T> {
-        self.peek(Direction::Left)
+        self.peek(Cardinal::West)
     }
 }
 
@@ -365,7 +373,7 @@ pub fn gridify_ascii<'a>(lines: impl Iterator<Item = &'a str>) -> Grid<u8> {
         })
         .count();
 
-    Grid::new(rows, cols, data)
+    Grid { rows, cols, data }
 }
 
 #[cfg(test)]

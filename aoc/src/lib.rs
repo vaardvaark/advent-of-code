@@ -1,7 +1,7 @@
 mod grid;
 mod vec2;
 
-pub use grid::{gridify_ascii, Cursor, Direction, Grid};
+pub use grid::{gridify_ascii, Cardinal, Cursor, Grid};
 pub use rayon;
 pub use regex;
 pub use std::borrow::Cow;

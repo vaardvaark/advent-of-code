@@ -42,7 +42,7 @@ fn explore_region(cursor: Cursor<u8>, visited: &mut BTreeSet<Vec2>) -> u64 {
     }
     let target = cursor.value();
     let mut perimeter = 4;
-    for dir in Direction::iter() {
+    for dir in Cardinal::iter() {
         if cursor.peek(dir).is_some_and(|val| val == target) {
             perimeter -= 1;
             let mut cursor = cursor.clone();

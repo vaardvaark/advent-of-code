@@ -30,7 +30,7 @@ fn part2(coords: &Parsed, end: Vec2) -> impl std::fmt::Display {
 
     for coord in coords.iter().rev() {
         grid.set(coord, false);
-        let Some(min) = Direction::iter()
+        let Some(min) = Cardinal::iter()
             .filter_map(|direction| {
                 min_distance
                     .get(&coord.translate(direction))
@@ -64,7 +64,7 @@ fn compute_distance(
         if pos == end {
             continue;
         }
-        for next in Direction::iter().map(|d| pos.translate(d)) {
+        for next in Cardinal::iter().map(|d| pos.translate(d)) {
             if grid.get(&next).is_some_and(|&wall| !wall)
                 && min_distance[next] > min_distance[pos] + 1
             {

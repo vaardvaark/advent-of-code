@@ -1,7 +1,7 @@
 use aoc::*;
 use std::collections::{HashMap, HashSet};
 
-type Parsed = (Vec2, HashSet<Vec2>, HashSet<Vec2>, Vec<Direction>);
+type Parsed = (Vec2, HashSet<Vec2>, HashSet<Vec2>, Vec<Cardinal>);
 
 fn parse_input(input: &str) -> Parsed {
     let (map, moves) = input.split_once("\n\n").unwrap();
@@ -24,7 +24,7 @@ fn parse_input(input: &str) -> Parsed {
     let moves = moves
         .as_bytes()
         .iter()
-        .filter_map(|&x| Direction::from_ascii(x))
+        .filter_map(|&x| Cardinal::from_ascii(x))
         .collect();
 
     (position, walls, boxes, moves)
@@ -43,7 +43,7 @@ fn part1((mut position, walls, boxes, moves): &Parsed) -> impl std::fmt::Display
 
 fn try_move(
     position: Vec2,
-    direction: Direction,
+    direction: Cardinal,
     walls: &HashSet<Vec2>,
     boxes: &mut HashSet<Vec2>,
 ) -> Option<Vec2> {
@@ -76,10 +76,10 @@ fn part2((start, old_walls, old_boxes, moves): &Parsed) -> impl std::fmt::Displa
     let mut position = Vec2::new(start.x * 2, start.y);
     for &direction in moves {
         position = match direction {
-            Direction::Left | Direction::Right => {
-                try_move_lr(position, direction, &walls, &mut boxes)
+            Cardinal::West | Cardinal::East => try_move_lr(position, direction, &walls, &mut boxes),
+            Cardinal::North | Cardinal::South => {
+                try_move_ud(position, direction, &walls, &mut boxes)
             }
-            Direction::Up | Direction::Down => try_move_ud(position, direction, &walls, &mut boxes),
         }
         .unwrap_or(position);
     }
@@ -104,7 +104,7 @@ fn part2((start, old_walls, old_boxes, moves): &Parsed) -> impl std::fmt::Displa
 
 fn try_move_lr(
     position: Vec2,
-    direction: Direction,
+    direction: Cardinal,
     walls: &HashSet<Vec2>,
     boxes: &mut HashMap<Vec2, usize>,
 ) -> Option<Vec2> {
@@ -123,7 +123,7 @@ fn try_move_lr(
 
 fn try_move_ud(
     position: Vec2,
-    direction: Direction,
+    direction: Cardinal,
     walls: &HashSet<Vec2>,
     boxes: &mut HashMap<Vec2, usize>,
 ) -> Option<Vec2> {
@@ -131,7 +131,7 @@ fn try_move_ud(
         id: usize,
         pos1: Vec2,
         pos2: Vec2,
-        direction: Direction,
+        direction: Cardinal,
         walls: &HashSet<Vec2>,
         boxes: &mut HashMap<Vec2, usize>,
         test: bool,
@@ -159,7 +159,7 @@ fn try_move_ud(
 
     fn inner(
         position: Vec2,
-        direction: Direction,
+        direction: Cardinal,
         walls: &HashSet<Vec2>,
         boxes: &mut HashMap<Vec2, usize>,
         test: bool,
@@ -168,7 +168,7 @@ fn try_move_ud(
         if walls.contains(&next_position) {
             None
         } else if let Some(&id) = boxes.get(&next_position) {
-            for d in [Direction::Right, Direction::Left] {
+            for d in [Cardinal::East, Cardinal::West] {
                 if let Some(pos) = step(
                     id,
                     next_position,

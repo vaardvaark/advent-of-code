@@ -23,7 +23,7 @@ fn part2(parsed: &Parsed) -> impl std::fmt::Display {
     let (score, scores) = solve(parsed).unwrap();
 
     let mut queue = VecDeque::new();
-    for dir in Direction::iter() {
+    for dir in Cardinal::iter() {
         if scores.get(&(end, dir)).is_some_and(|&c| c == score) {
             queue.push_back((score, end, dir));
         }
@@ -54,11 +54,11 @@ fn part2(parsed: &Parsed) -> impl std::fmt::Display {
     visited.len()
 }
 
-type ScoreMap = HashMap<(Vec2, Direction), u64>;
+type ScoreMap = HashMap<(Vec2, Cardinal), u64>;
 
 fn solve((grid, start, end): &Parsed) -> Option<(u64, ScoreMap)> {
     let mut scores: ScoreMap = ScoreMap::with_capacity(grid.cols() * grid.rows());
-    let mut queue: BinaryHeap<Reverse<(u64, Vec2, Direction)>> = BinaryHeap::new();
+    let mut queue: BinaryHeap<Reverse<(u64, Vec2, Cardinal)>> = BinaryHeap::new();
     queue.push(Reverse((1000, *start, Default::default())));
 
     while let Some(Reverse((score, pos, dir))) = queue.pop() {

@@ -1,4 +1,4 @@
-use crate::Direction;
+use crate::Cardinal;
 use std::ops;
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -116,11 +116,12 @@ impl ops::AddAssign for Vec2 {
     }
 }
 
-impl ops::Mul<i64> for Vec2 {
+impl<T: Into<i64>> ops::Mul<T> for Vec2 {
     type Output = Vec2;
     #[inline]
-    fn mul(self, rhs: i64) -> Self::Output {
+    fn mul(self, rhs: T) -> Self::Output {
         let Vec2 { x, y } = self;
+        let rhs = rhs.into();
         Vec2 {
             x: x * rhs,
             y: y * rhs,
@@ -128,47 +129,73 @@ impl ops::Mul<i64> for Vec2 {
     }
 }
 
-impl ops::MulAssign<i64> for Vec2 {
+impl<T: Into<i64>> ops::MulAssign<T> for Vec2 {
     #[inline]
-    fn mul_assign(&mut self, rhs: i64) {
+    fn mul_assign(&mut self, rhs: T) {
+        let rhs = rhs.into();
         self.x *= rhs;
         self.y *= rhs;
     }
 }
 
-impl From<(i64, i64)> for Vec2 {
-    #[inline]
-    fn from((x, y): (i64, i64)) -> Self {
-        Self { x, y }
-    }
+macro_rules! impl_from_tuple {
+    ($t:ty) => {
+        impl From<($t, $t)> for Vec2 {
+            #[inline]
+            fn from((x, y): ($t, $t)) -> Self {
+                Self {
+                    x: x.try_into().unwrap(),
+                    y: y.try_into().unwrap(),
+                }
+            }
+        }
+    };
+    ($t:ty, $($tail:ty),+) => {
+        impl_from_tuple!($t);
+        impl_from_tuple!($($tail),+);
+    };
 }
 
-impl From<(usize, usize)> for Vec2 {
+impl_from_tuple!(isize, i64, i32, i16, i8, usize, u64, u32, u16, u8);
+
+macro_rules! impl_into_tuple {
+    ($t:ty) => {
+        impl From<Vec2> for ($t, $t) {
+            #[inline]
+            fn from(Vec2 { x, y }: Vec2) -> Self {
+                (x.try_into().unwrap(), y.try_into().unwrap())
+            }
+        }
+    };
+    ($t:ty, $($tail:ty),+) => {
+        impl_into_tuple!($t);
+        impl_into_tuple!($($tail),+);
+    };
+}
+
+impl_into_tuple!(isize, i64, i32, i16, i8, usize, u64, u32, u16, u8);
+
+impl From<Cardinal> for Vec2 {
     #[inline]
-    fn from((x, y): (usize, usize)) -> Self {
-        assert!(x <= i64::MAX as usize && y <= i64::MAX as usize);
-        Self {
-            x: x as i64,
-            y: y as i64,
+    fn from(value: Cardinal) -> Self {
+        match value {
+            Cardinal::North => Self::up(),
+            Cardinal::East => Self::right(),
+            Cardinal::South => Self::down(),
+            Cardinal::West => Self::left(),
         }
     }
 }
 
-impl From<Vec2> for (i64, i64) {
-    #[inline]
-    fn from(Vec2 { x, y }: Vec2) -> Self {
-        (x, y)
-    }
-}
-
-impl From<Direction> for Vec2 {
-    #[inline]
-    fn from(value: Direction) -> Self {
+impl TryFrom<Vec2> for Cardinal {
+    type Error = String;
+    fn try_from(value: Vec2) -> Result<Self, Self::Error> {
         match value {
-            Direction::Up => Self::up(),
-            Direction::Right => Self::right(),
-            Direction::Down => Self::down(),
-            Direction::Left => Self::left(),
+            Vec2 { x, y: 0 } if x > 0 => Ok(Cardinal::East),
+            Vec2 { x, y: 0 } if x < 0 => Ok(Cardinal::West),
+            Vec2 { x: 0, y } if y > 0 => Ok(Cardinal::North),
+            Vec2 { x: 0, y } if y < 0 => Ok(Cardinal::West),
+            _ => Err(format!("{value} is not a cardinal direction")),
         }
     }
 }
