@@ -1,5 +1,5 @@
 use aoc::*;
-use std::{cmp::Reverse, collections::BinaryHeap};
+use std::collections::VecDeque;
 
 type Parsed = Vec<Vec2>;
 
@@ -10,51 +10,69 @@ fn parse_input(input: &str) -> Parsed {
 }
 
 fn part1(coords: &Parsed, end: Vec2, len: usize) -> impl std::fmt::Display {
-    let mut grid: Grid<bool> = Grid::new_empty(end.y as usize + 1, end.x as usize + 1);
+    let mut grid = Grid::new_with(1 + end.x as usize, 1 + end.y as usize, false);
     for pos in coords.iter().take(len) {
         grid.set(pos, true);
     }
-    println!("{grid}");
-    solve(Vec2::default(), end, &grid).expect("no route to exit")
+    let mut min_distance = Grid::new_with(grid.cols(), grid.rows(), u64::MAX);
+    compute_distance(0, Vec2::default(), end, &grid, &mut min_distance)
 }
 
 fn part2(coords: &Parsed, end: Vec2) -> impl std::fmt::Display {
-    let mut grid: Grid<bool> = Grid::new_empty(end.y as usize + 1, end.x as usize + 1);
-    for i in 0..coords.len() {
-        grid.set(&coords[i], true);
-        if solve(Vec2::default(), end, &grid).is_none() {
-            grid.set(&coords[i], false);
-            println!("{grid}");
-            return format!("{},{}", coords[i].x, coords[i].y);
-        }
+    let mut grid = Grid::new_with(1 + end.x as usize, 1 + end.y as usize, false);
+    for coord in coords {
+        grid.set(coord, true);
     }
-    "no solution".to_string()
-}
 
-fn solve(start: Vec2, end: Vec2, grid: &Grid<bool>) -> Option<u64> {
-    let mut queue = BinaryHeap::new();
-    let mut costs = Grid::new_with(grid.cols(), grid.rows(), u64::MAX);
-    queue.push(Reverse((0, start)));
+    let mut min_distance = Grid::new_with(grid.cols(), grid.rows(), u64::MAX);
+    min_distance[Vec2::default()] = 0;
+    compute_distance(0, Vec2::default(), end, &grid, &mut min_distance);
 
-    while let Some(Reverse((cost, pos))) = queue.pop() {
-        if costs[pos] != u64::MAX {
+    for coord in coords.iter().rev() {
+        grid.set(coord, false);
+        let min = Direction::iter()
+            .filter_map(|direction| min_distance.get(&coord.translate(direction)))
+            .min()
+            .unwrap_or(&u64::MAX);
+
+        if min == &u64::MAX {
             continue;
         }
 
-        if pos == end {
-            return Some(cost);
+        if compute_distance(min + 1, *coord, end, &grid, &mut min_distance) != u64::MAX {
+            return format!("{},{}", coord.x, coord.y);
         }
+    }
 
-        costs.set(&pos, cost);
-        for direction in Direction::iter() {
-            let next = pos.translate(direction);
-            if grid.get(&next).is_some_and(|&v| v == false) && costs[next] > cost {
-                queue.push(Reverse((cost + 1, next)));
+    "no solution".to_string()
+}
+
+fn compute_distance(
+    dist: u64,
+    start: Vec2,
+    end: Vec2,
+    grid: &Grid<bool>,
+    min_distance: &mut Grid<u64>,
+) -> u64 {
+    let mut queue = VecDeque::new();
+    queue.push_back((dist, start));
+
+    while let Some((distance, pos)) = queue.pop_front() {
+        min_distance[pos] = std::cmp::min(min_distance[pos], distance);
+        if pos == end {
+            continue;
+        }
+        for next in Direction::iter().map(|d| pos.translate(d)) {
+            if grid.get(&next).is_some_and(|&wall| !wall)
+                && min_distance[next] > min_distance[pos] + 1
+            {
+                min_distance[next] = min_distance[pos] + 1;
+                queue.push_back((min_distance[next], next));
             }
         }
     }
 
-    None
+    min_distance[end]
 }
 
 fn main() {
