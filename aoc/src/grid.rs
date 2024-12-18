@@ -71,6 +71,16 @@ impl<T: Default + Clone> Grid<T> {
     }
 }
 
+impl<T: Clone> Grid<T> {
+    pub fn new_with(cols: usize, rows: usize, value: T) -> Self {
+        Self {
+            rows,
+            cols,
+            data: vec![value; cols * rows],
+        }
+    }
+}
+
 impl<T> Grid<T> {
     pub fn new(rows: usize, cols: usize, data: Vec<T>) -> Self {
         Self { rows, cols, data }
@@ -191,43 +201,39 @@ impl fmt::Display for Grid<u8> {
 
 impl fmt::Display for Grid<bool> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        for row in (0..self.rows()).step_by(2) {
-            for col in (0..self.cols()).step_by(2) {
-                let mut group = [[false, false], [false, false]];
+        let mut group = [false, false];
+        writeln!(f, " {0:▁>1$}", "", self.cols())?;
+        for y in (0..self.rows() as i64).step_by(2) {
+            if y as usize == self.rows() - 1 {
+                write!(f, " ")?;
+            } else {
+                write!(f, "▕")?;
+            }
+            for x in 0..self.cols() as i64 {
                 for offset_y in 0..2 {
-                    for offset_x in 0..2 {
-                        let pos = Vec2 {
-                            x: offset_x as i64 + col as i64,
-                            y: offset_y as i64 + row as i64,
-                        };
-                        group[offset_y][offset_x] = *self.get(&pos).unwrap_or(&false)
-                    }
+                    let pos = Vec2 { x, y: offset_y + y };
+                    group[offset_y as usize] = *self.get(&pos).unwrap_or(&false)
                 }
-                eprintln!("{col},{row} {group:?}");
                 write!(
                     f,
                     "{}",
                     match group {
-                        [[false, false], [false, false]] => " ",
-                        [[false, false], [true, false]] => "▖",
-                        [[true, false], [false, false]] => "▘",
-                        [[false, false], [false, true]] => "▗",
-                        [[false, true], [false, false]] => "▝",
-                        [[false, true], [false, true]] => "▐",
-                        [[true, false], [true, false]] => "▌",
-                        [[true, true], [false, false]] => "▀",
-                        [[false, false], [true, true]] => "▄",
-                        [[false, true], [true, true]] => "▟",
-                        [[true, false], [true, true]] => "▙",
-                        [[true, true], [false, true]] => "▜",
-                        [[true, true], [true, false]] => "▛",
-                        [[false, true], [true, false]] => "▞",
-                        [[true, false], [false, true]] => "▚",
-                        [[true, true], [true, true]] => "█",
+                        [false, false] if y as usize == self.rows() - 1 => "─",
+                        [false, false] => " ",
+                        [true, false] => "▀",
+                        [false, true] => "▄",
+                        [true, true] => "█",
                     }
                 )?;
             }
-            writeln!(f)?;
+            if y as usize == self.rows() - 1 {
+                writeln!(f)?;
+            } else {
+                writeln!(f, "▏")?;
+            }
+        }
+        if self.rows() % 2 == 0 {
+            write!(f, " {0:▔>1$}", "", self.cols())?;
         }
         Ok(())
     }

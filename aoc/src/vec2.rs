@@ -10,7 +10,7 @@ pub struct Vec2 {
 impl Vec2 {
     #[inline]
     #[must_use]
-    pub fn new(x: i64, y: i64) -> Self {
+    pub const fn new(x: i64, y: i64) -> Self {
         Self { x, y }
     }
 
@@ -60,6 +60,12 @@ impl Vec2 {
         self.x += r.x;
         self.y += r.y;
         self
+    }
+}
+
+impl std::fmt::Display for Vec2 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "({}, {})", self.x, self.y)
     }
 }
 
