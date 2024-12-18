@@ -191,16 +191,41 @@ impl fmt::Display for Grid<u8> {
 
 impl fmt::Display for Grid<bool> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        for row in 0..self.rows() {
-            for col in 0..self.cols() {
-                let pos = Vec2 {
-                    x: col as i64,
-                    y: row as i64,
-                };
-                match self[pos] {
-                    true => write!(f, "█")?,
-                    false => write!(f, " ")?,
+        for row in (0..self.rows()).step_by(2) {
+            for col in (0..self.cols()).step_by(2) {
+                let mut group = [[false, false], [false, false]];
+                for offset_y in 0..2 {
+                    for offset_x in 0..2 {
+                        let pos = Vec2 {
+                            x: offset_x as i64 + col as i64,
+                            y: offset_y as i64 + row as i64,
+                        };
+                        group[offset_y][offset_x] = *self.get(&pos).unwrap_or(&false)
+                    }
                 }
+                eprintln!("{col},{row} {group:?}");
+                write!(
+                    f,
+                    "{}",
+                    match group {
+                        [[false, false], [false, false]] => " ",
+                        [[false, false], [true, false]] => "▖",
+                        [[true, false], [false, false]] => "▘",
+                        [[false, false], [false, true]] => "▗",
+                        [[false, true], [false, false]] => "▝",
+                        [[false, true], [false, true]] => "▐",
+                        [[true, false], [true, false]] => "▌",
+                        [[true, true], [false, false]] => "▀",
+                        [[false, false], [true, true]] => "▄",
+                        [[false, true], [true, true]] => "▟",
+                        [[true, false], [true, true]] => "▙",
+                        [[true, true], [false, true]] => "▜",
+                        [[true, true], [true, false]] => "▛",
+                        [[false, true], [true, false]] => "▞",
+                        [[true, false], [false, true]] => "▚",
+                        [[true, true], [true, true]] => "█",
+                    }
+                )?;
             }
             writeln!(f)?;
         }
