@@ -1,3 +1,5 @@
+#![allow(clippy::mut_range_bound)]
+
 use std::{cmp::Reverse, collections::BinaryHeap};
 
 type Parsed = (
@@ -87,8 +89,8 @@ fn part2((disk_map, free_map, file_map): &Parsed) -> impl std::fmt::Display {
 
         let mut best_loc = FREE;
         let mut best_len = 0;
-        for free_length in file_length..10 {
-            if let Some(&Reverse(free_location)) = free_map[free_length].peek() {
+        for (free_length, free_heap) in free_map.iter().enumerate().take(10).skip(file_length) {
+            if let Some(&Reverse(free_location)) = free_heap.peek() {
                 if free_location < file_location && free_location < best_loc {
                     best_loc = free_location;
                     best_len = free_length;

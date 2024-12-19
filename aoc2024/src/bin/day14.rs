@@ -53,8 +53,8 @@ fn part2(input: &Parsed, max: Vec2) {
     fn simulate(bots: &Parsed, seconds: i64, dims: Vec2) -> Vec<Vec2> {
         let mut pos = vec![];
         for robot in bots {
-            let x = (robot.pos.x + robot.vel.x * seconds).rem_euclid(dims.x as i64);
-            let y = (robot.pos.y + robot.vel.y * seconds).rem_euclid(dims.y as i64);
+            let x = (robot.pos.x + robot.vel.x * seconds).rem_euclid(dims.x);
+            let y = (robot.pos.y + robot.vel.y * seconds).rem_euclid(dims.y);
             pos.push(Vec2::new(x, y));
         }
         pos

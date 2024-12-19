@@ -15,13 +15,13 @@ fn parse_input(input: &str) -> Parsed {
 
 fn part1((towels, designs): &Parsed) -> impl std::fmt::Display {
     let re = Regex::new(&format!("^({})+$", towels.join("|"))).unwrap();
-    designs.iter().filter(|design| re.is_match(&design)).count()
+    designs.iter().filter(|design| re.is_match(design)).count()
 }
 
 fn part2((towels, designs): &Parsed) -> impl std::fmt::Display {
     designs
         .par_iter()
-        .map(|design| count_solutions(towels, &design))
+        .map(|design| count_solutions(towels, design))
         .sum::<usize>()
 }
 

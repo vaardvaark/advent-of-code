@@ -48,7 +48,7 @@ fn run([mut a, mut b, mut c]: [u64; 3], program: &[u8]) -> Vec<u8> {
         let opcode = program[pc];
         let literal = program[pc + 1];
         let combo = match literal {
-            0 | 1 | 2 | 3 => literal as u64,
+            0..=3 => literal as u64,
             4 => a,
             5 => b,
             6 => c,
@@ -56,8 +56,8 @@ fn run([mut a, mut b, mut c]: [u64; 3], program: &[u8]) -> Vec<u8> {
         };
 
         match opcode {
-            0 => a = a / 2u64.pow(combo as u32),
-            1 => b = b ^ literal as u64,
+            0 => a /= 2u64.pow(combo as u32),
+            1 => b ^= literal as u64,
             2 => b = combo & 7,
             3 => {
                 if a != 0 {
