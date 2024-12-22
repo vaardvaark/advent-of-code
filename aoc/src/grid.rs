@@ -103,9 +103,10 @@ impl<T> Grid<T> {
     }
 
     #[inline]
-    pub fn set(&mut self, pos: &Vec2, value: T) -> T {
-        assert!(self.in_bounds(pos));
-        let index = self.calc_index(pos);
+    pub fn set(&mut self, pos: impl Into<Vec2>, value: T) -> T {
+        let pos = pos.into();
+        assert!(self.in_bounds(&pos));
+        let index = self.calc_index(&pos);
         std::mem::replace(&mut self.data[index], value)
     }
 

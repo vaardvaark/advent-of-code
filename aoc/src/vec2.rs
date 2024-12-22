@@ -175,6 +175,12 @@ macro_rules! impl_into_tuple {
 
 impl_into_tuple!(isize, i64, i32, i16, i8, usize, u64, u32, u16, u8);
 
+impl From<&Vec2> for Vec2 {
+    fn from(value: &Vec2) -> Self {
+        *value
+    }
+}
+
 impl From<Cardinal> for Vec2 {
     #[inline]
     fn from(value: Cardinal) -> Self {
