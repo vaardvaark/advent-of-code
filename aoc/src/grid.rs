@@ -132,6 +132,38 @@ impl<T> Grid<T> {
         })
     }
 
+    /// Returns an iterator over the cells in a single row of the
+    /// grid in column order.
+    pub fn iter_row(&self, row: usize) -> impl Iterator<Item = &T> {
+        let mut column = 0;
+        let max_column = self.cols();
+        std::iter::from_fn(move || {
+            if column < max_column {
+                let value = Some(&self[(column, row)]);
+                column += 1;
+                value
+            } else {
+                None
+            }
+        })
+    }
+
+    /// Returns an iterator over the cells in a single column of the
+    /// grid in row order.
+    pub fn iter_column(&self, column: usize) -> impl Iterator<Item = &T> {
+        let mut row = 0;
+        let max_row = self.rows();
+        std::iter::from_fn(move || {
+            if row < max_row {
+                let value = Some(&self[(column, row)]);
+                row += 1;
+                value
+            } else {
+                None
+            }
+        })
+    }
+
     pub fn cursor(&self, pos: Vec2) -> Cursor<T> {
         Cursor { grid: self, pos }
     }
@@ -179,6 +211,19 @@ impl<T> std::ops::Index<Vec2> for Grid<T> {
     }
 }
 
+impl<T> std::ops::Index<(usize, usize)> for Grid<T> {
+    type Output = T;
+
+    #[inline]
+    fn index(&self, (x, y): (usize, usize)) -> &Self::Output {
+        let pos = Vec2 {
+            x: x.try_into().unwrap(),
+            y: y.try_into().unwrap(),
+        };
+        &self[pos]
+    }
+}
+
 impl<T> std::ops::IndexMut<Vec2> for Grid<T> {
     fn index_mut(&mut self, pos: Vec2) -> &mut Self::Output {
         assert!(
@@ -189,6 +234,16 @@ impl<T> std::ops::IndexMut<Vec2> for Grid<T> {
         );
         let index = self.calc_index(&pos);
         &mut self.data[index]
+    }
+}
+
+impl<T> std::ops::IndexMut<(usize, usize)> for Grid<T> {
+    fn index_mut(&mut self, (x, y): (usize, usize)) -> &mut Self::Output {
+        let pos = Vec2 {
+            x: x.try_into().unwrap(),
+            y: y.try_into().unwrap(),
+        };
+        &mut self[pos]
     }
 }
 
