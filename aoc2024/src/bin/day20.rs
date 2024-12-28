@@ -94,6 +94,6 @@ fn map_track(grid: &Grid<u8>, start: &Vec2, &end: &Vec2) -> Vec<(Vec2, i64)> {
 
 aoc::setup! {
     day20, parse_input;
-    part1 == 36,
-    part2 == 81
+    part1 == 0,
+    part2 == 0
 }
