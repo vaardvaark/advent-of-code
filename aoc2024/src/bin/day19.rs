@@ -3,13 +3,13 @@ use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use regex::Regex;
 use std::collections::HashMap;
 
-type Parsed = (Vec<String>, Vec<String>);
+type Parsed<'a> = (Vec<&'a str>, Vec<&'a str>);
 
 fn parse_input(input: &str) -> Parsed {
     let (towels, designs) = input.split_once("\n\n").unwrap();
-    let mut towels: Vec<_> = towels.split(',').map(|s| s.trim().to_string()).collect();
+    let mut towels: Vec<_> = towels.split(',').map(str::trim).collect();
     towels.sort();
-    let designs = designs.lines().map(|s| s.to_string()).collect();
+    let designs = designs.lines().collect();
     (towels, designs)
 }
 
@@ -25,8 +25,8 @@ fn part2((towels, designs): &Parsed) -> impl std::fmt::Display {
         .sum::<usize>()
 }
 
-fn count_solutions(towels: &[String], design: &str) -> usize {
-    fn inner<'a>(towels: &[String], design: &'a str, cache: &mut HashMap<&'a str, usize>) -> usize {
+fn count_solutions(towels: &[&str], design: &str) -> usize {
+    fn inner<'a>(towels: &[&str], design: &'a str, cache: &mut HashMap<&'a str, usize>) -> usize {
         if design.is_empty() {
             return 1;
         }
